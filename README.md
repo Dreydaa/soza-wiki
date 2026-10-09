@@ -33,7 +33,7 @@ Aucune étape de build, aucune dépendance à installer (le rendu Markdown, `mar
 ```
 index.html            squelette de la page
 assets/app.js         routage par #, barre latérale, onglets, recherche
-assets/style.css      styles (palette, polices, mise en page responsive)
+assets/style.css      styles néo-brutalistes (palette, polices, mise en page responsive, mode intégré)
 assets/marked.min.js  rendu Markdown (marked 12.0.2, licence MIT)
 content/              les pages, en Markdown
 ```
@@ -54,6 +54,18 @@ Les pages sont dans `content/*.md`. Chaque page commence par une ligne d'en-têt
 
 Une nouvelle page est ajoutée dans l'un des fichiers déjà listés dans `FILES` (`assets/app.js`), ou dans un nouveau fichier ajouté à cette liste.
 
-## Publier
+## Publier sur GitHub Pages
 
-Le dépôt est **privé**. C'est un site statique : il se déploie tel quel sur n'importe quel hébergeur de fichiers statiques (par exemple Vercel, sans commande de build, avec la racine du dépôt comme dossier de sortie). Avant de le rendre public ou de le déployer, relire le contenu : il décrit l'architecture interne, le schéma des bases et les noms des variables d'environnement du projet. Il ne contient aucun secret, aucune valeur de variable ni identifiant de production.
+Le workflow `.github/workflows/pages.yml` publie la racine du dépôt à chaque push sur `main` (aucun build). Une seule étape manuelle : **Settings → Pages → Source : GitHub Actions**. Le site sort sur `https://<utilisateur>.github.io/soza-wiki/`. Tous les chemins sont relatifs et le routage utilise le `#`, donc le sous-dossier `/soza-wiki/` ne pose aucun problème.
+
+Limites : GitHub Pages sur un dépôt **privé** demande un plan payant (Pro, Team ou Enterprise) ; sinon le dépôt doit être public. Avant de publier, relire le contenu : il décrit l'architecture interne, le schéma des bases et les noms des variables d'environnement du projet. Il ne contient aucun secret, aucune valeur de variable ni identifiant de production.
+
+Le site se déploie aussi tel quel sur n'importe quel hébergeur statique (Vercel, Netlify), sans commande de build.
+
+## Réutiliser dans le portfolio
+
+Le site parse son propre contenu au chargement (pages, sections, nombre de mots, pastilles de statut). Trois façons de l'exploiter :
+
+- **Données** : le bouton `JSON` (barre du haut) télécharge `soza-wiki.json` ; depuis la console ou un script de la même page, `SozaWiki.data()` renvoie le même objet et `SozaWiki.statuses()` la liste à plat des statuts (`kind`, `label`, `text`, `section`, `page`).
+- **Intégration** : `<iframe src="https://<utilisateur>.github.io/soza-wiki/?embed=1#architecture">` affiche uniquement le contenu, sans barre latérale ni onglets. Le `#identifiant` choisit la page.
+- **Markdown brut** : depuis un autre site, `fetch("https://<utilisateur>.github.io/soza-wiki/content/partie-1a.md")` fonctionne (GitHub Pages envoie `Access-Control-Allow-Origin: *`). Le format d'en-tête `@@ page …` est décrit plus haut.
