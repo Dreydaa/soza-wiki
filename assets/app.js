@@ -7,6 +7,8 @@
     II: { title: "Partie II", name: "Référence et vision V2", blurb: "Chronologie, V2, commandes, glossaire, sources." },
   };
   const STORE = "soza-wiki-tabs";
+  const KINDS = { ok: "Fait", prop: "Non vérifié", repl: "Retiré / échec", vision: "V2" };
+  const clip = (s, n) => (s.length > n ? `${s.slice(0, n).replace(/\s+\S*$/, "")}…` : s);
 
   const $ = (s, el = document) => el.querySelector(s);
   const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -21,6 +23,7 @@
   const byId = new Map();
   let tabs = ["accueil"];
   let active = "accueil";
+  let filter = "all";
 
   function parse(text) {
     const out = [];
@@ -56,8 +59,57 @@
         a.rel = "noopener noreferrer";
       }
     });
+    p.statuses = collectStatuses(root);
     p.html = tpl.innerHTML;
     p.text = root.textContent.replace(/\s+/g, " ").trim();
+    p.words = p.text.split(" ").length;
+    p.minutes = Math.max(1, Math.round(p.words / 220));
+  }
+
+  // Chaque pastille de statut devient un élément interrogeable : { kind, text, section }.
+  function collectStatuses(root) {
+    const plain = (n) => {
+      const c = n.cloneNode(true);
+      c.querySelectorAll(".st").forEach((s) => s.remove());
+      return c.textContent.replace(/\s+/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
+    };
+    const out = [];
+    let section = "";
+    root.querySelectorAll("h2, .st").forEach((el) => {
+      if (el.tagName === "H2") { section = el.textContent; return; }
+      if (section.startsWith("Légende")) return; // la légende définit les statuts, ce ne sont pas des éléments suivis
+      const kind = Object.keys(KINDS).find((k) => el.classList.contains(`st-${k}`));
+      const row = el.closest("tr, li, p, .rule");
+      if (!kind || !row) return;
+      const text = row.tagName === "TR"
+        ? [...row.cells].map(plain).filter((t) => t && !/^\d+$/.test(t)).join(" · ")
+        : plain(row);
+      out.push({ kind, label: el.textContent.trim(), text, section });
+    });
+    return out;
+  }
+
+  const statuses = () => pages.flatMap((p) => p.statuses.map((s) => ({ ...s, page: p.id })));
+
+  // Contenu complet, parsé : ce que le portfolio consomme (bouton « JSON » ou window.SozaWiki.data()).
+  function data() {
+    return {
+      generated: new Date().toISOString(),
+      parts: PARTS,
+      pages: pages.map(({ id, part, num, title, summary, sections, statuses: st, words, minutes, md }) => ({
+        id, part, num, title, summary, words, minutes, statuses: st,
+        sections: sections.map((s) => s.text),
+        markdown: md,
+      })),
+    };
+  }
+
+  function exportJSON() {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data(), null, 2)], { type: "application/json" }));
+    a.download = "soza-wiki.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
   }
 
   async function load() {
@@ -132,7 +184,41 @@
         html += `<a href="#${p.id}" data-id="${p.id}"><span class="n">${esc(p.num)}</span><b>${esc(p.title)}<i>${meta(p)}</i></b><span>${esc(p.summary)}</span></a>`;
       }
     }
-    return html + "</div>";
+    return liveHTML() + html + "</div>";
+  }
+
+  function statusList() {
+    return statuses()
+      .filter((s) => filter === "all" || s.kind === filter)
+      .map((s) => {
+        const p = byId.get(s.page);
+        const where = p.id === "accueil" ? "Accueil" : `${esc(p.num)}. ${esc(p.title)}`;
+        return `<li><span class="st st-${s.kind}">${esc(s.label)}</span><span>${esc(clip(s.text, 170))}</span><small><a href="#${p.id}" data-id="${p.id}">${where}</a>${s.section ? ` · ${esc(s.section)}` : ""}</small></li>`;
+      })
+      .join("");
+  }
+
+  // Bloc calculé à partir du contenu parsé : il change dès qu'une page Markdown change.
+  function liveHTML() {
+    const list = chapters();
+    const all = statuses();
+    const n = (k) => all.filter((s) => s.kind === k).length;
+    const kinds = Object.keys(KINDS).filter(n);
+    const sum = (f) => list.reduce((t, p) => t + f(p), 0);
+    const stat = (b, l) => `<div><b>${b}</b><span>${l}</span></div>`;
+    const chip = (k, l, c) => `<button class="chip" type="button" data-f="${k}" aria-pressed="${filter === k}">${l} · ${c}</button>`;
+    return `<section class="live" aria-label="Le wiki en direct"><h2>Le wiki en direct</h2><p>Calculé à l'ouverture à partir des pages Markdown.</p>
+<div class="stats">${stat(list.length, "pages")}${stat(sum((p) => p.sections.length), "sections")}${stat(sum((p) => p.words).toLocaleString("fr-FR"), "mots")}${stat(`${sum((p) => p.minutes)} min`, "de lecture")}${stat(all.length, "statuts suivis")}</div>
+<div class="bar" role="img" aria-label="Répartition des statuts">${kinds.map((k) => `<i class="st-${k}" style="flex:${n(k)}" title="${KINDS[k]}">${n(k)}</i>`).join("")}</div>
+<div class="filters">${chip("all", "Tous", all.length)}${kinds.map((k) => chip(k, KINDS[k], n(k))).join("")}</div>
+<ul class="sx" id="sx">${statusList()}</ul>
+<div class="tools"><button class="btn" type="button" data-export>↓ Exporter en JSON</button><a class="btn" href="?embed=1#accueil" target="_blank" rel="noopener">Mode intégré (iframe)</a></div></section>`;
+  }
+
+  function setFilter(f) {
+    filter = f;
+    document.querySelectorAll("[data-f]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.f === f)));
+    $("#sx").innerHTML = statusList();
   }
 
   function draw() {
@@ -218,6 +304,15 @@
     document.addEventListener("click", (e) => {
       const target = e.target instanceof Element ? e.target : null;
       if (!target) return;
+      const chip = target.closest("[data-f]");
+      if (chip) {
+        setFilter(chip.dataset.f);
+        return;
+      }
+      if (target.closest("[data-export]")) {
+        exportJSON();
+        return;
+      }
       const closer = target.closest("[data-close]");
       if (closer) {
         e.preventDefault();
@@ -283,12 +378,14 @@
   }
 
   async function main() {
+    if (new URLSearchParams(location.search).has("embed")) document.body.classList.add("embed");
     try {
       await load();
     } catch (err) {
       view.innerHTML = `<div class="page no-rail"><article><h1>Erreur de chargement</h1><p>Le contenu du wiki n'a pas pu être chargé (${esc(String(err.message || err))}). Ouvrez le site depuis un serveur web plutôt qu'en double-cliquant sur <code>index.html</code>.</p></article></div>`;
       return;
     }
+    window.SozaWiki = { data, statuses, go: (id) => go(id) }; // API pour le portfolio
     drawNav();
     try {
       const saved = JSON.parse(sessionStorage.getItem(STORE) || "{}");
