@@ -13,13 +13,14 @@
 | 07/10 | **Une seule personnalité, dashboard par défaut, mise en ligne** | Les deux personnalités sont fusionnées (« Friday »), le mode ACTIF/PAUSE est retiré, le dashboard en verre devient la page d'accueil, le fond passe à un aplat bleu ; la fusion sur `main` déclenche le déploiement qui met en ligne les correctifs de la veille. |
 | 08/10 | **Une application qui s'installe, qui mesure et qui se teste** | Bloc « Écran » réel (thread Rust), démarrage automatique et zone de notification, installeur Windows, briefing du soir rédigé par Soza, colonnes Notion obsolètes supprimées, 52 idées catégorisées, 286 tests, passe d'optimisation mesurée. |
 | 09/10 | **Fin de la V1** | Ruban à 60 images/s, barre de titre colorée, surnoms variés, installeur reconstruit et lancé, V1 déclarée terminée. |
-| à partir de 30/09 | **V2 cadrée** | Assistant vocal local, protocoles, puis (06/10) gestes de la main : documenté, pas démarré. Le premier chantier (personnalité unique) a été fait le 07/10, en fin de V1. |
+| 12/10 | **Quatre étapes de finition** | Tests de cadence corrigés ; statut `Terminé`, catégorie Notion et applications inconnues ; pause de plusieurs jours dans le dashboard ; lag mesuré puis réfraction du verre coupée. PR #12 à #15. |
+| à partir de 30/09 | **V2 cadrée** | Assistant vocal local, protocoles, puis (06/10) gestes de la main : documenté ; étapes 0 à 3 faites le 12/10, étapes 4 à 12 pas commencées. Le premier chantier (personnalité unique) a été fait le 07/10, en fin de V1. |
 
 ---
 
 @@ page vision-v2 | II | B | Vision V2 | Une seule personnalité, un agent local sur la machine, deux canaux d'entrée, un raisonnement qui reste dans le cloud.
 
-<span class="st st-vision">V2</span> Rien de cette annexe n'est implémenté (hors mention contraire). La V1 est terminée ; la V2 démarrera plus tard, à la décision de l'utilisateur.
+<span class="st st-vision">V2</span> Rien de cette annexe n'est implémenté (hors mention contraire). La V1 est terminée ; la V2 a démarré le 12/10/2026 par ses étapes de finition (0 à 3), et ses étapes 4 à 12 ne sont pas commencées.
 
 ## Pourquoi cette direction
 
