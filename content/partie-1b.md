@@ -115,13 +115,14 @@ Le bento est une CSS Grid en unités `fr`. La colonne de gauche est une grille �
 
 ## Le « verre liquide »
 
-Chaque carte est un panneau de verre qui **réfracte** réellement le fond :
+Chaque carte est un panneau de verre qui **réfractait** le fond (la réfraction est **coupée depuis le 12/10/2026**, voir le paragraphe ci-dessous sur le lag) :
 
 - une **carte de déplacement** est calculée pour chaque carte à partir de sa taille et de son rayon (distance au bord d'un rectangle arrondi, normale du bord, profil de lentille convexe), puis appliquée au fond par `backdrop-filter: url(#filtre-svg)` ;
 - la **dispersion chromatique** sépare les trois canaux couleur avec des intensités légèrement différentes ;
 - le reflet du biseau est généré à partir des normales du bord, pas dessiné ;
 - tout est exprimé dans une unité qui suit la fenêtre (`--u`), pour que la maquette reste fidèle à toute taille ;
-- compromis assumé : cette technique n'existe que dans Chromium/WebView2 ; ailleurs, repli sur flou et saturation.
+- compromis assumé : cette technique n'existe que dans Chromium/WebView2 ; ailleurs, repli sur flou et saturation ;
+- **état actuel** : `REFRACTIVE = false` dans `glass.ts`. Le `backdrop-filter` à réfraction coûtait ~120 % d'un cœur et ramenait le rendu des particules à ~20 images/s ; sans lui, ~30 % et 60 images/s. Le verre garde flou, reflet et grain mais perd les franges de couleur sur les bords. Réversible : le commentaire du code donne l'expression à remettre.
 
 Les cartes remplies ont une teinte sombre pour garder le texte lisible sur les rayons clairs. Quand une carte change de taille, le reflet étiré est masqué (`data-stale`) le temps d'être régénéré (voir [Bugs et causes racines](#bugs), bug 11).
 
@@ -173,7 +174,7 @@ Blender sert au prototypage et à la documentation, pas à produire l'asset fina
 | `MAX_PIXEL_RATIO` | 1,5 | Plafond de résolution |
 | `PARTICLE_COUNT` | 4 500 | En réduire le nombre à 3 600 ne changeait rien au CPU, donc le visuel validé est gardé |
 
-<span class="st st-prop">Non vérifié</span> : la cause exacte de la saccade n'est pas établie ; le filtre de réfraction des cartes de verre est recalculé à chaque image du canvas (coût GPU, non mesuré). Si la saccade persiste, l'option suivante est de désactiver la réfraction (`REFRACTIVE = false` dans `glass.ts`). Le CPU à 60 images/s n'a pas été remesuré.
+<span class="st st-ok">Fait</span> **Cause mesurée le 12/10/2026** (app installée du 09/10, écran 240 Hz, fenêtre visible au repos) : ~120 à 138 % d'un cœur et ~20 images de particules/s au lieu de 60 ; le coupable est le `backdrop-filter: url(#svg)` (réfraction) des cartes de verre, recalculé à chaque image. Variantes mesurées : réfraction sur les 4 petites cartes seulement 59 % et 60 images/s ; sans réfraction ~30 % et 60 images/s ; sans le canvas WebGL 18 %. Décision de l'utilisateur : réfraction coupée ; résultat sur le build de production neuf : ~30 % d'un cœur et 60 images/s. Laissés volontairement (aucun gain mesurable) : découpage du chunk JS, calcul des particules sur GPU.
 
 ## Réactivité audio
 
@@ -183,7 +184,7 @@ Blender sert au prototypage et à la documentation, pas à produire l'asset fina
 
 @@ page tests-qualite | I | 11 | Tests et qualité | Quatre familles de tests plus du Rust, ce qu'ils garantissent et ce qu'ils ne couvrent pas.
 
-286 tests, ajoutés le 08/10/2026 en fin de V1. Vitest 5, configuration à quatre projets dans `vitest.config.ts`.
+305 tests, ajoutés surtout le 08/10/2026 en fin de V1 (281 rapides rejoués le 12/10/2026). Vitest 5, configuration à quatre projets dans `vitest.config.ts`.
 
 | Famille | Ce qu'elle couvre | Rapidité |
 | --- | --- | --- |
@@ -200,11 +201,11 @@ Blender sert au prototypage et à la documentation, pas à produire l'asset fina
 - **Les bugs sont rangés par famille**, pas par date : chaque bug du chapitre [Bugs et causes racines](#bugs) a son garde-fou.
 - La vérification de types stricte (`tsc --noEmit`) accompagne chaque étape.
 
-## État au 09/10/2026
+## État au 12/10/2026
 
-- <span class="st st-ok">Fait</span> **263 tests rapides passent** (22 fichiers, moins d'une seconde) ; `tsc --noEmit` sans erreur.
-- <span class="st st-repl">Échec connu</span> **18 scénarios d'acceptation sur 20 passent.** Les deux tests de cadence de `tests/acceptance/performance.test.ts` figent l'ancienne cadence de 30 images/s alors que `REST_FPS` est passé à 60 : l'un compte 125 images en 2 s pour moins de 75 attendues, l'autre dépasse son délai de 60 s (cause non analysée, vraisemblablement la même attente). Le code est juste, les attentes sont périmées : la correction (lire `REST_FPS` au lieu d'une valeur en dur) n'est pas faite.
-- Les 3 tests Rust sont repris de l'état du projet sans avoir été rejoués ce jour-là.
+- <span class="st st-ok">Fait</span> **281 tests rapides passent** (23 fichiers, moins d'une seconde) ; `tsc --noEmit` sans erreur (rejoués le 12/10/2026).
+- <span class="st st-ok">Fait</span> **Les deux tests de cadence sont corrigés (étape 0, 12/10/2026).** Ils figeaient l'ancienne cadence de 30 images/s alors que `REST_FPS` est passé à 60. Ils lisent maintenant `REST_FPS` ; le test de l'intro n'échouait pas, il dépassait son délai de 60 s (rendu logiciel simulé), porté à 180 s. **Limite** : à 60 images/s le plafond ne se distingue plus de l'absence de plafond sur l'horloge simulée, ces tests ne gardent que le plafond haut. Le parcours d'acceptation compte maintenant 21 scénarios ; dernière exécution complète consignée à l'étape 3.
+- Les 3 tests Rust n'ont pas été rejoués depuis l'étape 0.
 
 ## Ce que les tests ne couvrent pas
 

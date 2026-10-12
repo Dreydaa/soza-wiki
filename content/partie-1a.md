@@ -18,16 +18,16 @@ Soza est née comme un coach de discipline à deux personnalités (une exigeante
 
 ## Statut
 
-La V1 a été déclarée terminée le 09/10/2026 (voir [Clôture de la V1](#cloture-v1)). Le backend est en production ; l'application de bureau a un installeur Windows ; une V2 est cadrée (voir [Vision V2](#vision-v2)).
+La V1 a été déclarée terminée le 09/10/2026 (voir [Clôture de la V1](#cloture-v1)). Le backend est en production ; l'application de bureau a un installeur Windows. Le 12/10/2026, quatre étapes de finition ont suivi (voir [Clôture de la V1](#cloture-v1), section « Depuis la clôture »). Une V2 est cadrée (voir [Vision V2](#vision-v2)) ; ses étapes 4 à 12 ne sont pas commencées.
 
 ## Chiffres clés
 
 | | |
 | --- | --- |
-| Durée | 3 semaines (premier commit le 16/09/2026, dernier le 09/10/2026) |
-| Historique | 73 commits |
+| Durée | 3 semaines de V1 (premier commit le 16/09/2026, clôture le 09/10/2026), puis 4 étapes de finition jusqu'au 12/10/2026 |
+| Historique | 73 commits à la clôture, 87 sur `main` au 12/10/2026 |
 | Code suivi par git | ~5 070 lignes : `api/` 167, `lib/` 1 165, `src/` 3 135, `scripts/` 440, Rust 166 ; plus 2 152 lignes de tests |
-| Tests | 286 : 263 rapides (rejoués le 09/10/2026), 20 scénarios navigateur (18 passent), 3 en Rust |
+| Tests | 305 : 281 rapides (rejoués le 12/10/2026), 21 scénarios navigateur (dernière exécution à l'étape 3, 12/10/2026), 3 en Rust (non rejoués) |
 | Endpoints serverless | 5 |
 | Outils IA exposés au modèle | 13 |
 | Bases Notion | 5 (Idées, Agenda, Jalons, Progression, Réglages) |
@@ -141,7 +141,7 @@ Définis dans `lib/ai/tools.ts`. Chaque outil a un schéma Zod et une descriptio
 | `update_idea_notes` | Remplace la synthèse d'une idée déjà enregistrée (en combinant l'ancien contenu et les nouvelles précisions). |
 | `update_idea_status` | Change le statut d'un projet : Brute, En cours ou Archivée. |
 | `create_milestone` | Crée un jalon de 7 à 10 jours, éventuellement lié à une idée. |
-| `complete_project` | Marque un projet comme terminé : archive l'idée et valide son jalon lié. |
+| `complete_project` | Marque un projet comme terminé : passe l'idée en `Terminé` (`Archivée` = abandonné) et valide son jalon lié. |
 | `suggest_projects` | Propose 3 idées à commencer, une par taille, en priorisant les plus anciennes. |
 | `add_agenda_item` | Ajoute un item ponctuel à l'agenda (date, heure et fin optionnelles). |
 | `add_shift_schedule` | Crée un bloc par jour ouvré pour un rythme de travail récurrent (type « Shift »). |
@@ -218,7 +218,7 @@ Notion est la source de vérité. Le schéma ci-dessous vient du code (`lib/noti
 | **Progression** | Date (title, `AAAA-MM-JJ` au fuseau de Paris), Bilan (rich_text) |
 | **Réglages** | Une seule ligne : Heure briefing matin, Heure bilan soir, QStash id briefing, QStash id bilan |
 
-La colonne **Catégorie** (15 options, les mêmes noms que les pastilles de logos) a été ajoutée par une migration et renseignée pour les 52 idées ; **le code ne la lit pas encore** (les logos restent devinés par mots-clés).
+La colonne **Catégorie** (15 options, les mêmes noms que les pastilles de logos) a été ajoutée par une migration et renseignée pour les 52 idées ; **le code la lit depuis le 12/10/2026** : elle est prioritaire sur les mots-clés pour choisir les logos (`Autre` = pas de logo), et `create_idea`, `add_agenda_item` et `create_milestone` l'écrivent. Les entrées d'Agenda et de Jalons créées avant cette date n'en ont pas. <span class="st st-prop">Non vérifié</span> : l'écriture réelle dans Notion (les tests simulent Notion). Le statut d'une idée peut être `Brute`, `En cours`, `Terminé` ou `Archivée`.
 
 ## Redis
 

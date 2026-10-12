@@ -15,7 +15,7 @@
 | **Fenêtre verrouillée en 1440 ou 1920 de large** | Mise en page responsive complète | Une app de bureau n'a pas besoin d'un mode mobile ; la grille est mise à l'échelle | Pas d'usage sur petit écran |
 | **Temps d'écran mesuré en Rust, gardé sur la machine** | L'envoyer à Notion ou au backend | Ce qu'on fait sur son ordinateur est une donnée sensible : elle n'a pas à quitter la machine, et un fichier local évite tout réseau | Visible seulement dans l'app, Windows uniquement |
 | **Fermer la fenêtre la masque** | Quitter l'application | Le suivi et le démarrage automatique supposent une app qui reste vivante ; « Quitter » est explicite dans la zone de notification | L'app reste en mémoire |
-| **Des tests sans aucun vrai service** | Tester contre les vrais Notion, Redis, Groq | Rapides (moins d'une seconde pour 263 tests), reproductibles, sans risque pour les vraies données ; tout appel réseau non prévu fait échouer le test | Un seul test (`test:live`), lancé à la main, valide les vraies APIs |
+| **Des tests sans aucun vrai service** | Tester contre les vrais Notion, Redis, Groq | Rapides (moins d'une seconde pour 281 tests), reproductibles, sans risque pour les vraies données ; tout appel réseau non prévu fait échouer le test | Un seul test (`test:live`), lancé à la main, valide les vraies APIs |
 
 ---
 
@@ -96,7 +96,7 @@ Certains flux RSS laissent `&#8216;` dans leurs titres, que React affiche tel qu
 
 ## 14. Une animation saccadée dans l'application installée
 
-Le ruban avait été plafonné à 30 images/s au repos pour économiser le CPU (mesuré le 08/10 : environ 8 à 10 % d'un cœur, contre environ 140 % sans plafond), et ce réglage avait été validé sur la consommation, pas sur le ressenti. Dans l'app installée, l'animation était saccadée. **Correction appliquée le 09/10** : 60 images/s au repos. <span class="st st-prop">Non vérifié</span> à l'usage, et la cause n'est pas établie : le filtre de réfraction des 8 cartes de verre est recalculé à chaque image du canvas (coût GPU, non mesuré). *Leçon : un réglage de performance validé par une mesure de ressources peut dégrader l'expérience ; un seuil de fluidité se juge à l'œil dans l'application réelle.* **Effet de bord** : deux tests d'acceptation figeaient la valeur de 30 images/s et échouent depuis le passage à 60. *Leçon : un test qui recopie la valeur d'un réglage au lieu de la lire casse à chaque changement du réglage.*
+Le ruban avait été plafonné à 30 images/s au repos pour économiser le CPU (mesuré le 08/10 : environ 8 à 10 % d'un cœur, contre environ 140 % sans plafond), et ce réglage avait été validé sur la consommation, pas sur le ressenti. Dans l'app installée, l'animation était saccadée. **Correction appliquée le 09/10** : 60 images/s au repos. **Cause établie le 12/10/2026** : le `backdrop-filter` à réfraction des cartes de verre, recalculé à chaque image du canvas (~120 % d'un cœur et ~20 images/s mesurés dans l'app installée, contre ~30 % et 60 images/s sans la réfraction). L'utilisateur a choisi de la couper (`REFRACTIVE = false`, réversible). *Leçon : un réglage de performance validé par une mesure de ressources peut dégrader l'expérience ; un seuil de fluidité se juge à l'œil dans l'application réelle.* **Effet de bord** : deux tests d'acceptation figeaient la valeur de 30 images/s et échouaient depuis le passage à 60 ; corrigé le 12/10/2026 (ils lisent `REST_FPS`). *Leçon : un test qui recopie la valeur d'un réglage au lieu de la lire casse à chaque changement du réglage.*
 
 ## 15. Un prompt qui impose un mot par défaut le répète partout
 
@@ -106,7 +106,7 @@ Le prompt de personnalité donnait « Boss » comme appellation par défaut, et 
 
 @@ page cloture-v1 | I | 16 | Clôture de la V1 | Ce qui est livré, ce qui a été vérifié le 09/10/2026, l'échec connu et ce qui ne l'est pas.
 
-La V1 a été **déclarée terminée par l'utilisateur le 09/10/2026**, après trois semaines et 73 commits ; la V2 démarrera plus tard.
+La V1 a été **déclarée terminée par l'utilisateur le 09/10/2026**, après trois semaines et 73 commits. La V2 a démarré le 12/10/2026 par des étapes de finition (voir « Depuis la clôture » en bas de ce chapitre). Les sections ci-dessous décrivent l'état **au 09/10/2026**, sauf mention contraire.
 
 ## Ce qui est livré
 
@@ -139,7 +139,7 @@ Listé comme restant avant la déclaration ; sa vérification n'est pas consign�
 - <span class="st st-prop">Non vérifié</span> `npm run test:live` : les écritures Notion avec le client 4, jamais vérifiées contre le vrai Notion.
 - <span class="st st-prop">Non vérifié</span> Une passe sécurité (`/security-review`).
 - <span class="st st-prop">Non vérifié</span> Quelques jours d'usage, et le premier texte réel du briefing du soir et du matin avec le nouveau code.
-- <span class="st st-prop">Non vérifié</span> La cause du lag (le filtre de réfraction est suspecté, non mesuré).
+- <span class="st st-prop">Non vérifié</span> La cause du lag (le filtre de réfraction était suspecté, non mesuré). **Mesurée et traitée le 12/10/2026.**
 
 ## Optionnel, non fait
 
@@ -147,7 +147,7 @@ La catégorie Notion lue par le code (les logos restent devinés), le statut `Te
 
 ## Limites assumées
 
-- Les relecteurs expérimentés y regarderont en premier ; autant les dire : **la suite de tests n'est pas entièrement verte** (2 scénarios sur 20 en échec).
+- Les relecteurs expérimentés y regarderont en premier ; autant les dire : **à la clôture, la suite de tests n'était pas entièrement verte** (2 scénarios sur 20 en échec ; corrigé le 12/10/2026).
 - **Un seul projet « En cours » à la fois** : limite choisie pour la simplicité, documentée plutôt que contournée.
 - **Dépendance à des services tiers gratuits** (Vercel, QStash, Upstash, Notion, Groq) avec leurs quotas.
 - **Le texte produit par le modèle n'est pas testé automatiquement** : seul le contexte qui lui est envoyé l'est.
@@ -159,3 +159,16 @@ La catégorie Notion lue par le code (les logos restent devinés), le statut `Te
 - Un réglage validé sur une mesure (le CPU) peut être mauvais à l'usage (la fluidité) ; et un test qui recopie la valeur du réglage plutôt que de la lire échoue dès qu'on le change.
 - Une valeur « par défaut » écrite dans un prompt tend à se retrouver partout dans les réponses.
 - Déclarer « terminé » n'efface pas la liste de ce qu'on n'a pas vérifié : la clôture l'inscrit au lieu de l'omettre.
+
+## Depuis la clôture (12/10/2026)
+
+Quatre étapes, une pull request chacune (#12 à #15), faites du plus simple au plus dur :
+
+| Étape | Ce qui a changé | Statut |
+| --- | --- | --- |
+| 0 | Les 2 tests de cadence lisent `REST_FPS` ; l'ordre des étapes de la V2 est fixé | <span class="st st-ok">Fait</span> |
+| 1 | Statut `Terminé` pour les idées ; catégorie Notion lue et écrite par le code ; noms et logos pour les applications inconnues du temps d'écran | <span class="st st-ok">Fait</span> en tests ; <span class="st st-prop">Non vérifié</span> en écriture réelle dans Notion |
+| 2 | `/api/dashboard` expose la pause en cours ou à venir ; le bloc briefing l'annonce (pas de persistance Notion, Redis suffit) | <span class="st st-ok">Fait</span> ; <span class="st st-prop">Non vérifié</span> sur le vrai Redis |
+| 3 | Cause du lag mesurée, réfraction du verre coupée | <span class="st st-ok">Fait</span> |
+
+Resté ouvert : l'installeur du 12/10 n'est pas lancé (l'app installée est celle du 09/10), le démarrage automatique réel et le menu de la zone de notification ne sont pas vérifiés, `npm run test:live` n'a jamais été relancé, la passe sécurité n'a pas été faite sur le code réel, et les textes réels des briefings avec le nouveau code n'ont pas été observés. Les anciennes idées passées `Archivée` alors qu'elles étaient finies ne comptent pas dans « Finis » tant qu'elles ne sont pas repassées en `Terminé` dans Notion.
