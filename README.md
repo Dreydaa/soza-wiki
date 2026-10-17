@@ -6,7 +6,7 @@ Le contenu est consolidé à partir du dépôt Soza (README, état du projet, jo
 
 ## Contenu
 
-22 pages en deux parties.
+23 pages en deux parties.
 
 - **Partie I : le projet (V1)** : en bref, architecture, cœur IA, outils IA, briefings et pause, données, déploiement, application de bureau, dashboard en verre, avatar (ruban de Möbius), tests, sécurité, décisions, retraits, bugs et causes racines, clôture de la V1.
 - **Partie II : référence et V2** : chronologie, vision V2, chantiers V2, commandes et variables, glossaire, sources.

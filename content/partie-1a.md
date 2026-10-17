@@ -10,7 +10,9 @@ Un assistant qui vit là où l'utilisateur est déjà, une conversation Telegram
 
 - il comprend le langage naturel (« ajoute un rendez-vous jeudi à 14 h », « je prends mon week-end ») et agit dans Notion via des outils IA ;
 - il envoie un **briefing le matin** (météo, agenda, bilan de la veille) et demande un **bilan le soir**, à des horaires modifiables en conversation ;
-- une **application de bureau** (Tauri + React) affiche tout cela dans un tableau de bord en « verre liquide », devant un ruban de Möbius en particules animé en temps réel.
+- une **application de bureau** (Tauri + React) affiche tout cela dans un tableau de bord en « verre liquide », devant un ruban de Möbius en particules animé en temps réel ;
+- depuis la V2, elle répond aussi aux **questions extérieures** par une recherche web (réponse courte, lisible à voix haute), suit **plusieurs projets en parallèle**, et exécute des **commandes locales** (ouvrir ou fermer une application, volume, musique) depuis une barre `Ctrl+K` ;
+- un message exact sur Telegram peut lancer un **protocole** : une séquence d'étapes que le PC va chercher et exécute.
 
 ## Un cadrage qui a évolué
 
@@ -18,17 +20,17 @@ Soza est née comme un coach de discipline à deux personnalités (une exigeante
 
 ## Statut
 
-La V1 a été déclarée terminée le 09/10/2026 (voir [Clôture de la V1](#cloture-v1)). Le backend est en production ; l'application de bureau a un installeur Windows. Le 12/10/2026, quatre étapes de finition ont suivi (voir [Clôture de la V1](#cloture-v1), section « Depuis la clôture »). Une V2 est cadrée (voir [Vision V2](#vision-v2)) ; ses étapes 4 à 12 ne sont pas commencées.
+La V1 a été déclarée terminée le 09/10/2026 (voir [Clôture de la V1](#cloture-v1)). Le backend est en production ; l'application de bureau a un installeur Windows. La V2 a démarré le 12/10/2026 : neuf étapes faites ou livrées au 17/10/2026 (voir [Avancement de la V2](#avancement-v2)) ; la voix, l'agent résident et les gestes de la main ne sont pas commencés (voir [Vision V2](#vision-v2)).
 
 ## Chiffres clés
 
 | | |
 | --- | --- |
-| Durée | 3 semaines de V1 (premier commit le 16/09/2026, clôture le 09/10/2026), puis 4 étapes de finition jusqu'au 12/10/2026 |
-| Historique | 73 commits à la clôture, 87 sur `main` au 12/10/2026 |
+| Durée | 3 semaines de V1 (premier commit le 16/09/2026, clôture le 09/10/2026), puis la V2 : étapes 0 à 8 du 12 au 17/10/2026 |
+| Historique | 73 commits à la clôture, 108 sur `main` au 17/10/2026 (23 pull requests) |
 | Code suivi par git | ~5 070 lignes : `api/` 167, `lib/` 1 165, `src/` 3 135, `scripts/` 440, Rust 166 ; plus 2 152 lignes de tests |
-| Tests | 305 : 281 rapides (rejoués le 12/10/2026), 21 scénarios navigateur (dernière exécution à l'étape 3, 12/10/2026), 3 en Rust (non rejoués) |
-| Endpoints serverless | 5 |
+| Tests | 362 : 318 rapides et 23 en Rust (rejoués le 17/10/2026), 21 scénarios navigateur (dernière exécution : 21/21 à l'étape 6, 15/10/2026) ; 3 essais réels en Rust sont ignorés par défaut |
+| Endpoints serverless | 6 |
 | Outils IA exposés au modèle | 13 |
 | Bases Notion | 5 (Idées, Agenda, Jalons, Progression, Réglages) |
 | Fournisseur du modèle | Groq (un second fournisseur a été essayé puis retiré) |
@@ -36,12 +38,12 @@ La V1 a été déclarée terminée le 09/10/2026 (voir [Clôture de la V1](#clot
 
 ---
 
-@@ page architecture | I | 2 | Architecture | Les flux, les cinq endpoints, les principes directeurs et l'organisation du dépôt.
+@@ page architecture | I | 2 | Architecture | Les flux, les six endpoints, les principes directeurs et l'organisation du dépôt.
 
 ## Vue d'ensemble
 
 ```
-Telegram ──▶ api/telegram-webhook.ts ──▶ QStash (file) ──▶ api/qstash-worker.ts ──▶ Groq (LLM + 13 outils) ──▶ Notion
+Telegram ──▶ api/telegram-webhook.ts ──▶ QStash (file) ──▶ api/qstash-worker.ts ──▶ Groq (LLM + 13 outils + recherche web) ──▶ Notion
                     │                                              │
                     ▼                                              ▼
              valide le chat_id                               répond sur Telegram
@@ -55,7 +57,7 @@ Redis : mémoire de conversation (10 messages, 6 h), derniers briefings (matin e
 Application de bureau (Rust) : temps d'écran mesuré en local (jamais envoyé), zone de notification, démarrage avec Windows
 ```
 
-## Les cinq endpoints
+## Les six endpoints
 
 | Endpoint | Rôle |
 | --- | --- |
@@ -64,6 +66,7 @@ Application de bureau (Rust) : temps d'écran mesuré en local (jamais envoyé),
 | `api/cron-morning.ts` | Déclenché par un QStash Schedule : rédige et envoie le briefing du matin, enregistre la version courte pour le dashboard. Silencieux pendant une pause. |
 | `api/cron-evening.ts` | Même mécanique pour le briefing du soir, qui se termine par la question du bilan. |
 | `api/dashboard.ts` | Agrège Notion, les actualités et les derniers briefings pour l'application de bureau. Protégé par une clé. |
+| `api/protocol.ts` | Appelé par l'application du PC (même clé que le dashboard) : remet une seule fois le protocole en attente, puis reçoit le statut de chaque étape et envoie le message de fin sur Telegram. |
 
 ## Principes directeurs
 
@@ -75,10 +78,10 @@ Application de bureau (Rust) : temps d'écran mesuré en local (jamais envoyé),
 ## Organisation du dépôt
 
 ```
-api/        5 endpoints serverless (edge) : webhook, worker, crons, dashboard
+api/        6 endpoints serverless (edge) : webhook, worker, crons, dashboard, protocole
 lib/        cœur métier : IA (client, outils, prompt), accès Notion, intégrations, mémoire Redis, dates, briefing
 src/        application de bureau : features/ (glass, widgets, calendar, intro, particles, hub…)
-src-tauri/  application de bureau en Rust : fenêtre, temps d'écran, zone de notification, démarrage automatique
+src-tauri/  application de bureau en Rust : fenêtre, temps d'écran, zone de notification, démarrage automatique, commandes locales (applications, volume, musique, batterie), agent de protocoles
 tests/      unit, integration, regression, acceptance + faux Notion, faux Redis et réseau bloqué
 scripts/    configuration et migration Notion/QStash, test contre les vraies APIs
 docs/       état du projet, contexte IA, V2, journal de construction
@@ -108,7 +111,7 @@ Deux prompts de personnage (l'un exigeant, l'autre protecteur, choisis selon l'h
 
 - Soza est « SOZA, opérateur système IA personnel » : une personnalité qui fusionne l'efficacité tactique de FRIDAY et la finesse de J.A.R.V.I.S., en français ;
 - deux registres : **opérationnel** (court, factuel, propose une action) et **conseil** (déclenché par un évitement répété, une décision risquée, le briefing du matin ou le bilan) ;
-- appellations : « Boss », « patron », « chef », alternées (jamais le même deux messages de suite, et pas de surnom dans la plupart des messages) ; « Monsieur » seulement pour une remarque pointue ;
+- appellations : « Boss », « patron », « chef », **tirées au hasard par le code** pour les seuls briefings du matin et du soir (le modèle n'a pas de mémoire d'un appel à l'autre et retombait toujours sur « patron »), aucun surnom ailleurs ; « Monsieur » seulement pour une remarque pointue ;
 - elle ne parle jamais d'elle à la troisième personne : quand l'utilisateur parle de Soza (le bot, l'app, le dashboard, les briefings), il parle d'elle.
 
 ## Le modèle décide des détails qu'il peut décider
@@ -149,7 +152,9 @@ Définis dans `lib/ai/tools.ts`. Chaque outil a un schéma Zod et une descriptio
 | `update_briefing_schedule` | Change l'heure du briefing du matin ou du bilan du soir (met à jour le QStash Schedule et la base Réglages). |
 | `set_break` | Met Soza en pause entre deux dates : plus de briefing ni de bilan, et l'absence de bilan n'est pas reprochée. |
 | `cancel_break` | Annule la pause en cours ou programmée. |
-| `record_progress` | Enregistre le bilan du jour dans Notion. |
+| `record_progress` | Enregistre le bilan du jour dans Notion. Reçoit aussi, quand il y a plusieurs projets en cours, la liste de ceux sur lesquels l'utilisateur a avancé (`projectsWorkedOn`), écrite en tête du texte et rapprochée des vrais titres par le code. |
+
+**Recherche web.** En plus de ces 13 outils, le modèle dispose de la recherche intégrée du fournisseur (`web_search`). Il décide seul de s'en servir, pour une question extérieure ou récente seulement (jamais pour l'agenda ou les projets). La réponse doit tenir en deux ou trois phrases sans liste ni lien, et les marques de citation que la recherche ajoute sont retirées par le code. Si Groq rejette l'outil, un second essai a lieu sans la recherche, mais seulement si aucun outil d'écriture n'a déjà tourné. Voir [Avancement de la V2](#avancement-v2), étape 5, pour le coût en jetons.
 
 ## Pourquoi un bloc par jour de shift
 
@@ -212,13 +217,13 @@ Notion est la source de vérité. Le schéma ci-dessous vient du code (`lib/noti
 
 | Base | Propriétés utilisées |
 | --- | --- |
-| **Idées** | Titre (title), Taille (select : Petit / Moyen / Grand), Date d'entrée (date), Statut (select : Brute / En cours / Archivée), Notes (rich_text), Catégorie (select) |
+| **Idées** | Titre (title), Taille (select : Petit / Moyen / Grand), Date d'entrée (date), Statut (select : Brute / En cours / Terminé / Archivée), Notes (rich_text), Catégorie (select) |
 | **Agenda** | Titre (title), Date (date, avec heure et fuseau Europe/Paris si connue), Statut (select, dont « À faire » et « Fait »), Type (select : Perso / Shift), Catégorie (select) |
 | **Jalons** | Titre (title), Échéance (date), Statut (select, dont « Validé »), Preuve (url), Idée liée (relation), Catégorie (select) |
 | **Progression** | Date (title, `AAAA-MM-JJ` au fuseau de Paris), Bilan (rich_text) |
 | **Réglages** | Une seule ligne : Heure briefing matin, Heure bilan soir, QStash id briefing, QStash id bilan |
 
-La colonne **Catégorie** (15 options, les mêmes noms que les pastilles de logos) a été ajoutée par une migration et renseignée pour les 52 idées ; **le code la lit depuis le 12/10/2026** : elle est prioritaire sur les mots-clés pour choisir les logos (`Autre` = pas de logo), et `create_idea`, `add_agenda_item` et `create_milestone` l'écrivent. Les entrées d'Agenda et de Jalons créées avant cette date n'en ont pas. <span class="st st-prop">Non vérifié</span> : l'écriture réelle dans Notion (les tests simulent Notion). Le statut d'une idée peut être `Brute`, `En cours`, `Terminé` ou `Archivée`.
+La colonne **Catégorie** (15 options, les mêmes noms que les pastilles de logos) a été ajoutée par une migration et renseignée pour les 52 idées ; **le code la lit depuis le 12/10/2026** : elle est prioritaire sur les mots-clés pour choisir les logos (`Autre` = pas de logo), et `create_idea`, `add_agenda_item` et `create_milestone` l'écrivent. Les entrées d'Agenda et de Jalons créées avant cette date n'en ont pas. **Écriture réelle vérifiée le 13/10/2026** : écrite puis relue dans Idées, Agenda et Jalons (les pages de test ont été archivées), et `npm run test:live` a donné 48/48 le même jour, après l'ajout du statut `Terminé` dans la base Idées par l'utilisateur (à refaire si la base est recréée). Le statut d'une idée peut être `Brute`, `En cours`, `Terminé` ou `Archivée`.
 
 ## Redis
 
@@ -228,10 +233,13 @@ La colonne **Catégorie** (15 options, les mêmes noms que les pastilles de logo
 | `last-briefing` | Version courte du briefing du matin, pour le dashboard | 20 heures |
 | `last-evening-briefing` | Version courte du briefing du soir | 20 heures |
 | `break` | Pause en cours : `{ start, end }` | jusqu'à 3 jours après la fin |
+| `protocol:run` | Protocole en attente ou en cours : code, étapes, indicateur « déjà remis au PC » | 15 minutes |
 
 ## Fichier local (application de bureau)
 
 `usage.json`, dans `%APPDATA%\com.soza.assistant\` : les secondes passées par jour et par application. Il reste sur la machine ; rien n'est envoyé à Notion ni au backend.
+
+Trois autres fichiers, dans le même dossier, sont créés vides au premier lancement et relus à chaque commande : `apps.json` (la liste blanche des applications que la barre de commande et les protocoles peuvent ouvrir ou fermer), un fichier d'identifiants pour la recherche d'un morceau par son nom, et `agent.json` (l'adresse de l'API et la clé que le PC utilise pour récupérer les protocoles). Aucun n'est versionné.
 
 ## Migration Notion
 
