@@ -15,7 +15,7 @@
 | **Fenêtre verrouillée en 1440 ou 1920 de large** | Mise en page responsive complète | Une app de bureau n'a pas besoin d'un mode mobile ; la grille est mise à l'échelle | Pas d'usage sur petit écran |
 | **Temps d'écran mesuré en Rust, gardé sur la machine** | L'envoyer à Notion ou au backend | Ce qu'on fait sur son ordinateur est une donnée sensible : elle n'a pas à quitter la machine, et un fichier local évite tout réseau | Visible seulement dans l'app, Windows uniquement |
 | **Fermer la fenêtre la masque** | Quitter l'application | Le suivi et le démarrage automatique supposent une app qui reste vivante ; « Quitter » est explicite dans la zone de notification | L'app reste en mémoire |
-| **Des tests sans aucun vrai service** | Tester contre les vrais Notion, Redis, Groq | Rapides (moins d'une seconde pour 281 tests), reproductibles, sans risque pour les vraies données ; tout appel réseau non prévu fait échouer le test | Un seul test (`test:live`), lancé à la main, valide les vraies APIs |
+| **Des tests sans aucun vrai service** | Tester contre les vrais Notion, Redis, Groq | Rapides (moins d'une seconde pour 318 tests), reproductibles, sans risque pour les vraies données ; tout appel réseau non prévu fait échouer le test | Un seul test (`test:live`), lancé à la main, valide les vraies APIs |
 
 ---
 
@@ -100,7 +100,7 @@ Le ruban avait été plafonné à 30 images/s au repos pour économiser le CPU (
 
 ## 15. Un prompt qui impose un mot par défaut le répète partout
 
-Le prompt de personnalité donnait « Boss » comme appellation par défaut, et ses exemples commençaient par ce mot. **Correction** : trois surnoms alternés, jamais le même deux messages de suite, et pas de surnom dans la plupart des messages (un seul, pour saluer, marquer une remarque ou adoucir un rappel) ; la question de repli du briefing du soir n'a plus de surnom en dur. <span class="st st-prop">Non vérifié</span> : le texte réel du modèle (seul le contenu du prompt est testé). *Leçon : une valeur « par défaut » écrite dans un prompt tend à devenir un tic ; mieux vaut décrire quand l'employer.*
+Le prompt de personnalité donnait « Boss » comme appellation par défaut, et ses exemples commençaient par ce mot. **Correction** : trois surnoms alternés, jamais le même deux messages de suite, et pas de surnom dans la plupart des messages (un seul, pour saluer, marquer une remarque ou adoucir un rappel) ; la question de repli du briefing du soir n'a plus de surnom en dur. **Suite, 14/10/2026** : la règle « jamais le même deux fois de suite » ne tenait pas, car le modèle n'a aucune mémoire d'un appel à l'autre et retombait sur « patron ». Le code tire désormais au hasard un surnom pour les briefings du matin et du soir et le donne au modèle ; le prompt interdit tout surnom ailleurs. <span class="st st-prop">Non vérifié</span> : le texte réel du modèle (seul le contenu du prompt est testé). *Leçon : une valeur « par défaut » écrite dans un prompt tend à devenir un tic ; mieux vaut décrire quand l'employer. Et une règle qui suppose une mémoire que le modèle n'a pas se déplace dans le code.*
 
 ---
 
@@ -148,7 +148,7 @@ La catégorie Notion lue par le code (les logos restent devinés), le statut `Te
 ## Limites assumées
 
 - Les relecteurs expérimentés y regarderont en premier ; autant les dire : **à la clôture, la suite de tests n'était pas entièrement verte** (2 scénarios sur 20 en échec ; corrigé le 12/10/2026).
-- **Un seul projet « En cours » à la fois** : limite choisie pour la simplicité, documentée plutôt que contournée.
+- **Un seul projet « En cours » à la fois** (à la clôture ; la limite n'existait déjà plus dans le code, et plusieurs projets en parallèle sont gérés depuis le 15/10/2026) : limite choisie pour la simplicité, documentée plutôt que contournée.
 - **Dépendance à des services tiers gratuits** (Vercel, QStash, Upstash, Notion, Groq) avec leurs quotas.
 - **Le texte produit par le modèle n'est pas testé automatiquement** : seul le contexte qui lui est envoyé l'est.
 - **Pas de limitation de débit** au-delà du filtre `chat_id`.
@@ -160,15 +160,20 @@ La catégorie Notion lue par le code (les logos restent devinés), le statut `Te
 - Une valeur « par défaut » écrite dans un prompt tend à se retrouver partout dans les réponses.
 - Déclarer « terminé » n'efface pas la liste de ce qu'on n'a pas vérifié : la clôture l'inscrit au lieu de l'omettre.
 
-## Depuis la clôture (12/10/2026)
+## Depuis la clôture (12 → 17/10/2026)
 
-Quatre étapes, une pull request chacune (#12 à #15), faites du plus simple au plus dur :
+Neuf étapes, une pull request chacune (PR #12 à #23, dont quelques PR de documentation et de correctif), faites du plus simple au plus dur. Le détail des étapes 4 à 8 est dans [Avancement de la V2](#avancement-v2) :
 
 | Étape | Ce qui a changé | Statut |
 | --- | --- | --- |
 | 0 | Les 2 tests de cadence lisent `REST_FPS` ; l'ordre des étapes de la V2 est fixé | <span class="st st-ok">Fait</span> |
-| 1 | Statut `Terminé` pour les idées ; catégorie Notion lue et écrite par le code ; noms et logos pour les applications inconnues du temps d'écran | <span class="st st-ok">Fait</span> en tests ; <span class="st st-prop">Non vérifié</span> en écriture réelle dans Notion |
+| 1 | Statut `Terminé` pour les idées ; catégorie Notion lue et écrite par le code ; noms et logos pour les applications inconnues du temps d'écran | <span class="st st-ok">Fait</span> ; écriture réelle vérifiée sur Notion le 13/10/2026 |
 | 2 | `/api/dashboard` expose la pause en cours ou à venir ; le bloc briefing l'annonce (pas de persistance Notion, Redis suffit) | <span class="st st-ok">Fait</span> ; <span class="st st-prop">Non vérifié</span> sur le vrai Redis |
 | 3 | Cause du lag mesurée, réfraction du verre coupée | <span class="st st-ok">Fait</span> |
+| 4 | Ouvrir et fermer une application nommée depuis une barre `Ctrl+K` | <span class="st st-ok">Fait</span> validé par l'utilisateur |
+| 5 | Recherche web de Soza sur Telegram | <span class="st st-ok">Fait</span> sur le vrai modèle ; <span class="st st-prop">Non vérifié</span> sur Telegram |
+| 6 | Volume, musique, batterie de la souris | <span class="st st-ok">Fait</span> essayés sur la vraie machine |
+| 7 | Plusieurs projets en parallèle | <span class="st st-ok">Fait</span> confirmé par l'utilisateur |
+| 8 | Moteur de protocoles, premier protocole | <span class="st st-ok">Fait</span> côté code ; <span class="st st-prop">Non vérifié</span> essai réel |
 
-Resté ouvert : l'installeur du 12/10 n'est pas lancé (l'app installée est celle du 09/10), le démarrage automatique réel et le menu de la zone de notification ne sont pas vérifiés, `npm run test:live` n'a jamais été relancé, la passe sécurité n'a pas été faite sur le code réel, et les textes réels des briefings avec le nouveau code n'ont pas été observés. Les anciennes idées passées `Archivée` alors qu'elles étaient finies ne comptent pas dans « Finis » tant qu'elles ne sont pas repassées en `Terminé` dans Notion.
+Resté ouvert : le démarrage automatique réel et le menu de la zone de notification ne sont pas vérifiés (l'app installée est celle de l'installeur du 13/10, essayée par l'utilisateur pour l'étape 4), la passe sécurité n'a pas été faite sur le code réel, et les textes réels des briefings avec le nouveau code n'ont pas été observés. `npm run test:live` a été relancé le 13/10/2026 : 48/48 sur le vrai Notion, Redis et Groq. Les anciennes idées passées `Archivée` alors qu'elles étaient finies ne comptent pas dans « Finis » tant qu'elles ne sont pas repassées en `Terminé` dans Notion.

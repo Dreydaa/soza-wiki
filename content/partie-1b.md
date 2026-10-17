@@ -77,6 +77,16 @@ Masquer la fenêtre dans la zone de notification ne change pas `document.visibil
 
 Le build a d'abord échoué : `cargo add` avait monté la crate `tauri` à 2.12.1 alors que les paquets npm restaient en 2.11 ; les deux ont été alignés (voir [Bugs et causes racines](#bugs), bug 12). Profil `release` : `opt-level = "s"`, LTO, `codegen-units = 1`, `strip`, `panic` laissé en `unwind` pour qu'une panique du thread de suivi n'arrête pas l'app. Résultat mesuré : exécutable de 9,75 à 6,55 Mo (−33 %).
 
+## Barre de commande, musique et protocoles (V2)
+
+Depuis le 13/10/2026, l'application exécute des commandes locales, sans réseau, depuis une barre qui s'ouvre avec `Ctrl+K` (`Échap` la ferme) et flotte en bas au centre, sans toucher à la grille de cartes :
+
+- **applications** : un verbe (`ouvre`, `lance`, `ferme`…) puis un nom ; seules les applications d'une liste blanche locale (`apps.json`) peuvent être lancées ou fermées. La fermeture est douce : l'application peut proposer d'enregistrer, rien n'est jamais forcé ;
+- **volume** (Core Audio de Windows), **musique** (commandes multimédia de Windows : le lecteur actif, quel qu'il soit ; un morceau demandé par son nom est cherché via l'API web du service de musique) et **batterie de la souris** (lecture seule, par le protocole du fabricant ; ne couvre qu'une fonction précise) ;
+- **protocoles** : toutes les 30 secondes, l'application demande au backend s'il y a un protocole à exécuter, l'exécute étape par étape (ouvrir une application de la liste blanche) et renvoie le statut de chaque étape.
+
+Le détail, les limites et ce qui n'est pas vérifié sont dans [Avancement de la V2](#avancement-v2).
+
 ## Sécurité de l'application
 
 Voir [Sécurité](#securite) : politique de sécurité de contenu stricte en production et capacité d'ouverture de liens limitée à `https://`.
@@ -184,7 +194,7 @@ Blender sert au prototypage et à la documentation, pas à produire l'asset fina
 
 @@ page tests-qualite | I | 11 | Tests et qualité | Quatre familles de tests plus du Rust, ce qu'ils garantissent et ce qu'ils ne couvrent pas.
 
-305 tests, ajoutés surtout le 08/10/2026 en fin de V1 (281 rapides rejoués le 12/10/2026). Vitest 5, configuration à quatre projets dans `vitest.config.ts`.
+362 tests, ajoutés surtout le 08/10/2026 en fin de V1, puis à chaque étape de la V2 (318 rapides et 23 en Rust rejoués le 17/10/2026). Vitest 5, configuration à quatre projets dans `vitest.config.ts`.
 
 | Famille | Ce qu'elle couvre | Rapidité |
 | --- | --- | --- |
@@ -201,11 +211,12 @@ Blender sert au prototypage et à la documentation, pas à produire l'asset fina
 - **Les bugs sont rangés par famille**, pas par date : chaque bug du chapitre [Bugs et causes racines](#bugs) a son garde-fou.
 - La vérification de types stricte (`tsc --noEmit`) accompagne chaque étape.
 
-## État au 12/10/2026
+## État au 17/10/2026
 
-- <span class="st st-ok">Fait</span> **281 tests rapides passent** (23 fichiers, moins d'une seconde) ; `tsc --noEmit` sans erreur (rejoués le 12/10/2026).
-- <span class="st st-ok">Fait</span> **Les deux tests de cadence sont corrigés (étape 0, 12/10/2026).** Ils figeaient l'ancienne cadence de 30 images/s alors que `REST_FPS` est passé à 60. Ils lisent maintenant `REST_FPS` ; le test de l'intro n'échouait pas, il dépassait son délai de 60 s (rendu logiciel simulé), porté à 180 s. **Limite** : à 60 images/s le plafond ne se distingue plus de l'absence de plafond sur l'horloge simulée, ces tests ne gardent que le plafond haut. Le parcours d'acceptation compte maintenant 21 scénarios ; dernière exécution complète consignée à l'étape 3.
-- Les 3 tests Rust n'ont pas été rejoués depuis l'étape 0.
+- <span class="st st-ok">Fait</span> **318 tests rapides passent** (25 fichiers, moins d'une seconde) ; `tsc --noEmit` sans erreur (rejoués le 17/10/2026).
+- <span class="st st-ok">Fait</span> **Les deux tests de cadence sont corrigés (étape 0, 12/10/2026).** Ils figeaient l'ancienne cadence de 30 images/s alors que `REST_FPS` est passé à 60. Ils lisent maintenant `REST_FPS` ; le test de l'intro n'échouait pas, il dépassait son délai de 60 s (rendu logiciel simulé), porté à 180 s. **Limite** : à 60 images/s le plafond ne se distingue plus de l'absence de plafond sur l'horloge simulée, ces tests ne gardent que le plafond haut. Le parcours d'acceptation compte maintenant 21 scénarios ; dernière exécution complète consignée : 21/21 à l'étape 6 (les étapes 7 et 8 ne touchent pas l'interface).
+- <span class="st st-ok">Fait</span> **Tests Rust : 23 passent, 3 sont ignorés** (les essais réels : musique, recherche d'un morceau, identifiants refusés), rejoués le 17/10/2026.
+- Deux **batteries contre le vrai modèle** existent (`test:search` : 28 cas de recherche ; `test:projects` : briefings et bilan avec plusieurs projets). Ce ne sont pas des tests de non-régression : elles coûtent 160 000 à 220 000 jetons, sur un quota quotidien de 200 000 partagé avec les briefings, et ne se relancent pas plusieurs fois par jour.
 
 ## Ce que les tests ne couvrent pas
 
@@ -213,7 +224,7 @@ Le suivi réel de la fenêtre active (il dépend du système d'exploitation), le
 
 ## Commandes
 
-Voir [Commandes et variables](#commandes) : `npm test`, `npm run test:acceptance`, `npm run test:rust`, `npm run test:all`, `npm run test:live`.
+Voir [Commandes et variables](#commandes) : `npm test`, `npm run test:acceptance`, `npm run test:rust`, `npm run test:all`, `npm run test:live`, `npm run test:search`, `npm run test:projects`.
 
 ---
 
@@ -234,6 +245,10 @@ Les endpoints de cron exigent une signature QStash valide, ou le secret `CRON_SE
 ## L'endpoint du dashboard
 
 Protégé par une clé dans l'en-tête `x-dashboard-key`. **Compromis assumé** : la clé est embarquée dans le build de l'application (variable `VITE_DASHBOARD_API_KEY`), ce qui est acceptable en usage mono-utilisateur mais ne le serait pas pour un produit public.
+
+## L'endpoint du protocole
+
+`api/protocol.ts` utilise la même clé que le dashboard. Il remet un protocole **une seule fois** au PC (pas de double lancement si le PC tombe en route), borne ce qu'il accepte en retour (au plus 20 résultats d'étapes, textes tronqués) et répond 404 à un identifiant inconnu ou expiré. Le backend ne donne jamais de chemin de fichier : il décrit des étapes (`ouvrir <application>`) que le PC résout avec sa propre liste blanche locale. Sur Telegram, le déclencheur est strict : le message entier doit être `Protocole <code>` avec un code connu, et c'est le worker qui l'exécute avant le modèle, jamais le webhook.
 
 ## L'application de bureau
 
