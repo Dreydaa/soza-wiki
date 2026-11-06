@@ -12,38 +12,44 @@ Un assistant qui vit là où l'utilisateur est déjà, une conversation Telegram
 - il envoie un **briefing le matin** (météo, agenda, bilan de la veille) et demande un **bilan le soir**, à des horaires modifiables en conversation ;
 - une **application de bureau** (Tauri + React) affiche tout cela dans un tableau de bord en « verre liquide », devant un ruban de Möbius en particules animé en temps réel ;
 - depuis la V2, elle répond aussi aux **questions extérieures** par une recherche web (réponse courte, lisible à voix haute), suit **plusieurs projets en parallèle**, et exécute des **commandes locales** (ouvrir ou fermer une application, volume, musique) depuis une barre `Ctrl+K` ;
-- un message exact sur Telegram peut lancer un **protocole** : une séquence d'étapes que le PC va chercher et exécute.
+- un message exact sur Telegram peut lancer un **protocole** : une séquence d'étapes que le PC va chercher et exécute ;
+- elle **parle et écoute** : chaque réponse de `Ctrl+K` est dite à voix haute avec une voix entraînée sur des enregistrements consentis, et une phrase qui commence par « Løra » est comprise par une reconnaissance vocale locale (voir [La voix de Løra](#voix)) ;
+- à la voix, elle lance aussi des **modes de travail** et peut **lire ou écrire dans une session Claude Code**.
 
 ## Un cadrage qui a évolué
 
-Soza est née comme un coach de discipline à deux personnalités (une exigeante, une protectrice, selon les horaires de travail). Le 07/10/2026, l'utilisateur tenant sa cadence de travail, ce cadrage a été abandonné : une seule personnalité (« Friday »), plus de mode ACTIF/PAUSE, le produit se rapprochant d'un assistant du type Jarvis/FRIDAY. Le retrait a touché le backend (modes, prompts, outils, accès Notion, briefing, API du dashboard), les scripts et le front. Voir [Ce qui a été retiré](#retraits).
+Løra est née comme un coach de discipline à deux personnalités (une exigeante, une protectrice, selon les horaires de travail). Le 07/10/2026, l'utilisateur tenant sa cadence de travail, ce cadrage a été abandonné : une seule personnalité (« Friday »), plus de mode ACTIF/PAUSE, le produit se rapprochant d'un assistant du type Jarvis/FRIDAY. Le retrait a touché le backend (modes, prompts, outils, accès Notion, briefing, API du dashboard), les scripts et le front. Voir [Ce qui a été retiré](#retraits).
+
+## Un nouveau nom
+
+L'assistante s'appelait Soza, un prénom masculin choisi comme nom provisoire. Le 05/11/2026, l'utilisateur l'a rebaptisée **Løra** pour de bon, avant d'attaquer la reconnaissance vocale. Le code et la documentation sont renommés. Quelques identifiants gardent volontairement l'ancien nom, parce que les renommer casserait un état existant : le dossier de données de l'application, l'adresse du déploiement, les identifiants des planifications QStash (en créer de nouvelles enverrait deux briefings le matin), le dépôt GitHub. Le « ø » ne se décompose pas comme « é » : il est ramené à « o » pour retrouver un projet par son nom et pour la prononciation de la voix.
 
 ## Statut
 
-La V1 a été déclarée terminée le 09/10/2026 (voir [Clôture de la V1](#cloture-v1)). Le backend est en production ; l'application de bureau a un installeur Windows. La V2 a démarré le 12/10/2026 : neuf étapes faites ou livrées au 17/10/2026 (voir [Avancement de la V2](#avancement-v2)) ; la voix, l'agent résident et les gestes de la main ne sont pas commencés (voir [Vision V2](#vision-v2)).
+La V1 a été déclarée terminée le 09/10/2026 (voir [Clôture de la V1](#cloture-v1)). Le backend est en production ; l'application de bureau a un installeur Windows. La V2 a démarré le 12/10/2026 et avance une pull request par étape (39 fusionnées au 06/11/2026, voir [Avancement de la V2](#avancement-v2)) : les étapes 0 à 8 sont faites, la voix (étape 9) et le widget (étape 10) sont faits côté code, et l'étape 13 (élargir les commandes vocales) a plusieurs lots. Les étapes 11 et 12 (« qu'est-ce que je regarde ? », gestes de la main) ne sont pas commencées (voir [Vision V2](#vision-v2) et [La voix de Løra](#voix)).
 
 ## Chiffres clés
 
 | | |
 | --- | --- |
-| Durée | 3 semaines de V1 (premier commit le 16/09/2026, clôture le 09/10/2026), puis la V2 : étapes 0 à 8 du 12 au 17/10/2026 |
-| Historique | 73 commits à la clôture, 108 sur `main` au 17/10/2026 (23 pull requests) |
+| Durée | 3 semaines de V1 (premier commit le 16/09/2026, clôture le 09/10/2026), puis la V2 : étapes 0 à 8 du 12 au 20/10/2026, la voix et les commandes vocales du 18/10 au 06/11/2026 |
+| Historique | 73 commits à la clôture, 155 sur `main` au 06/11/2026 (39 pull requests fusionnées) |
 | Code suivi par git | ~5 070 lignes : `api/` 167, `lib/` 1 165, `src/` 3 135, `scripts/` 440, Rust 166 ; plus 2 152 lignes de tests |
-| Tests | 362 : 318 rapides et 23 en Rust (rejoués le 17/10/2026), 21 scénarios navigateur (dernière exécution : 21/21 à l'étape 6, 15/10/2026) ; 3 essais réels en Rust sont ignorés par défaut |
-| Endpoints serverless | 6 |
-| Outils IA exposés au modèle | 13 |
+| Tests | 529 : 411 rapides, 95 en Rust, 23 scénarios navigateur (rejoués le 06/11/2026 d'après l'état du projet) ; 13 essais réels en Rust sont ignorés par défaut |
+| Endpoints serverless | 7 |
+| Outils IA exposés au modèle | 19, plus la recherche web intégrée du fournisseur |
 | Bases Notion | 5 (Idées, Agenda, Jalons, Progression, Réglages) |
 | Fournisseur du modèle | Groq (un second fournisseur a été essayé puis retiré) |
 | Dépendances d'exécution | 13 |
 
 ---
 
-@@ page architecture | I | 2 | Architecture | Les flux, les six endpoints, les principes directeurs et l'organisation du dépôt.
+@@ page architecture | I | 2 | Architecture | Les flux, les sept endpoints, les principes directeurs et l'organisation du dépôt.
 
 ## Vue d'ensemble
 
 ```
-Telegram ──▶ api/telegram-webhook.ts ──▶ QStash (file) ──▶ api/qstash-worker.ts ──▶ Groq (LLM + 13 outils + recherche web) ──▶ Notion
+Telegram ──▶ api/telegram-webhook.ts ──▶ QStash (file) ──▶ api/qstash-worker.ts ──▶ Groq (LLM + 19 outils + recherche web) ──▶ Notion
                     │                                              │
                     ▼                                              ▼
              valide le chat_id                               répond sur Telegram
@@ -52,12 +58,13 @@ QStash Schedules ──▶ api/cron-morning.ts / api/cron-evening.ts ──▶ N
                          (silencieux pendant une pause)
 
 Application de bureau (Tauri) ──▶ api/dashboard.ts ──▶ Notion (lecture agrégée) + Redis (derniers briefings)
+Application de bureau (Ctrl+K, micro) ──▶ api/ask.ts ──▶ même cerveau que Telegram ──▶ réponse affichée et dite
 
 Redis : mémoire de conversation (10 messages, 6 h), derniers briefings (matin et soir), pause en cours
 Application de bureau (Rust) : temps d'écran mesuré en local (jamais envoyé), zone de notification, démarrage avec Windows
 ```
 
-## Les six endpoints
+## Les sept endpoints
 
 | Endpoint | Rôle |
 | --- | --- |
@@ -67,6 +74,7 @@ Application de bureau (Rust) : temps d'écran mesuré en local (jamais envoyé),
 | `api/cron-evening.ts` | Même mécanique pour le briefing du soir, qui se termine par la question du bilan. |
 | `api/dashboard.ts` | Agrège Notion, les actualités et les derniers briefings pour l'application de bureau. Protégé par une clé. |
 | `api/protocol.ts` | Appelé par l'application du PC (même clé que le dashboard) : remet une seule fois le protocole en attente, puis reçoit le statut de chaque étape et envoie le message de fin sur Telegram. |
+| `api/ask.ts` | Reçoit les phrases de la barre `Ctrl+K` et du micro (même clé que le dashboard) et appelle le même `askLora` que Telegram, avec une consigne de réponse dite à voix haute. |
 
 ## Principes directeurs
 
@@ -78,10 +86,10 @@ Application de bureau (Rust) : temps d'écran mesuré en local (jamais envoyé),
 ## Organisation du dépôt
 
 ```
-api/        6 endpoints serverless (edge) : webhook, worker, crons, dashboard, protocole
+api/        7 endpoints serverless (edge) : webhook, worker, crons, dashboard, protocole, ask
 lib/        cœur métier : IA (client, outils, prompt), accès Notion, intégrations, mémoire Redis, dates, briefing
 src/        application de bureau : features/ (glass, widgets, calendar, intro, particles, hub…)
-src-tauri/  application de bureau en Rust : fenêtre, temps d'écran, zone de notification, démarrage automatique, commandes locales (applications, volume, musique, batterie), agent de protocoles
+src-tauri/  application de bureau en Rust : fenêtre, temps d'écran, zone de notification, démarrage automatique, commandes locales (applications, volume, musique, batterie), agent de protocoles, voix de sortie (Piper), écoute du micro (Whisper), commandes de contrôle, modes de travail, Claude Code, widget
 tests/      unit, integration, regression, acceptance + faux Notion, faux Redis et réseau bloqué
 scripts/    configuration et migration Notion/QStash, test contre les vraies APIs
 docs/       état du projet, contexte IA, V2, journal de construction
@@ -91,7 +99,7 @@ docs/       état du projet, contexte IA, V2, journal de construction
 
 @@ page coeur-ia | I | 3 | Le cœur IA | Appel d'outils, prompt de personnalité, doute, date du jour, mémoire et repli.
 
-Le modèle ne « répond » pas seulement : il agit, via 13 outils (voir [Les outils IA](#outils-ia)), chacun défini par un schéma Zod. Il est appelé par `askSoza` (`lib/ai/client.ts`) avec le Vercel AI SDK et le fournisseur Groq (modèle par défaut `openai/gpt-oss-120b`, réglable par la variable `GROQ_MODEL`).
+Le modèle ne « répond » pas seulement : il agit, via 19 outils (voir [Les outils IA](#outils-ia)), chacun défini par un schéma Zod. Il est appelé par `askLora` (`lib/ai/client.ts`) avec le Vercel AI SDK et le fournisseur Groq (modèle par défaut `openai/gpt-oss-120b`, réglable par la variable `GROQ_MODEL`).
 
 ## Ce qui est envoyé au modèle
 
@@ -109,10 +117,12 @@ Une consigne dédiée interdit de créer une idée ou un jalon sur une intention
 
 Deux prompts de personnage (l'un exigeant, l'autre protecteur, choisis selon l'heure) ont été fusionnés en un seul, `friday.ts`, rédigé par l'utilisateur :
 
-- Soza est « SOZA, opérateur système IA personnel » : une personnalité qui fusionne l'efficacité tactique de FRIDAY et la finesse de J.A.R.V.I.S., en français ;
+- Løra est « LØRA, opérateur système IA personnel » : une personnalité qui fusionne l'efficacité tactique de FRIDAY et la finesse de J.A.R.V.I.S., en français ;
 - deux registres : **opérationnel** (court, factuel, propose une action) et **conseil** (déclenché par un évitement répété, une décision risquée, le briefing du matin ou le bilan) ;
-- appellations : « Boss », « patron », « chef », **tirées au hasard par le code** pour les seuls briefings du matin et du soir (le modèle n'a pas de mémoire d'un appel à l'autre et retombait toujours sur « patron »), aucun surnom ailleurs ; « Monsieur » seulement pour une remarque pointue ;
-- elle ne parle jamais d'elle à la troisième personne : quand l'utilisateur parle de Soza (le bot, l'app, le dashboard, les briefings), il parle d'elle.
+- appellations : « Boss », « patron », « chef », **tirées au hasard par le code** pour les briefings du matin et du soir et pour les réponses dites à voix haute (le modèle n'a pas de mémoire d'un appel à l'autre et retombait toujours sur « patron »), **jamais dans le texte écrit sur Telegram** ; l'utilisateur a autorisé les surnoms à l'oral le 05/11/2026 ; « Monsieur » seulement pour une remarque pointue ;
+- **le prénom de l'utilisateur n'est jamais dit ni écrit**, même s'il figure dans les données (la voix lit les textes à voix haute) : une règle explicite du prompt, testée sur le contenu du prompt seulement ;
+- toujours au **tutoiement** (« tu », « ton ») : un mélange tu/vous avait été constaté à l'oral comme sur Telegram, la règle est maintenant en tête du prompt ;
+- elle ne parle jamais d'elle à la troisième personne : quand l'utilisateur parle de Løra (le bot, l'app, le dashboard, les briefings), il parle d'elle.
 
 ## Le modèle décide des détails qu'il peut décider
 
@@ -126,6 +136,25 @@ Groq renvoie parfois `null` pour un paramètre optionnel au lieu de l'omettre ; 
 
 Le prompt de conversation ne contenait aucune date : « ce week-end » ou « demain » ne pouvaient pas être convertis en dates réelles pour les outils. La date du jour (fuseau de Paris) est désormais injectée.
 
+## Peser les appels : la limite de débit de Groq
+
+Le palier gratuit de Groq limite chaque modèle à **8 000 jetons par minute** et à 200 000 par jour. Un appel avec tous les outils pèse environ 3 700 jetons avant même le message de l'utilisateur, et une action en demandait deux. Quatre mesures, toutes par allègement (l'utilisateur refuse tout palier payant) :
+
+- le second appel d'une action n'envoie plus d'outils (7 603 → 5 275 jetons, −31 %) ;
+- sur une limite 429, le modèle suivant prend le relais (`gpt-oss-20b`, qui suit moins bien la personnalité et n'a pas de recherche web), jamais après qu'un outil a écrit ;
+- les descriptions d'outils sont raccourcies ;
+- **seuls les outils évoqués par le message sont envoyés** : routage par mots-clés, accents et majuscules ignorés ; aucun mot reconnu = tous les outils, pour ne jamais bloquer une action.
+
+Le cache de prompt de Groq ne se déclenche pas sur ce compte : on ne compte pas dessus. Voir le bug [16](#bugs) pour l'incident qui a déclenché ce travail. <span class="st st-prop">Non vérifié</span> Le repli de modèle contre un vrai refus (testé avec des simulations).
+
+## Parler à voix haute
+
+Une phrase venue de `Ctrl+K` ou du micro passe par `api/ask`, qui appelle le même `askLora` que Telegram (mêmes outils, même historique) avec une consigne en plus : 2 à 4 phrases, sans liste, nombres écrits comme on les prononce, code météo jamais lu tel quel. Les « C'est fait. » collés à une réponse d'information sont retirés en code quand aucun outil d'écriture n'a tourné. **Une demande vocale demande confirmation avant toute écriture dans Notion** (« je le fais ? ») et n'appelle l'outil qu'après un « oui » au message suivant ; le texte tapé et Telegram ne changent pas. Les lectures (briefing, agenda, idées, météo, dernier bilan, réglages) sont des outils à part. Essai réel le 05/11/2026 (vrai modèle, vrai Notion, lecture seule) : météo, briefing relu, projets avec avis, `17 fois 23` = 391, agenda de la semaine, recherche.
+
+## Ne jamais deviner
+
+Une consigne de franchise est ajoutée à toutes les conversations : ne jamais inventer une information, un résultat ou une réponse ; ne dire sur Løra et sur l'utilisateur que ce qu'un outil a rendu dans l'échange ; sinon le dire en une phrase et proposer comment l'obtenir ; ne jamais annoncer une action faite sans la confirmation de l'outil. C'est une consigne au modèle, pas un filtre : seul ce qui lui est envoyé est testé. Les briefings, eux, reçoivent des faits calculés par le code.
+
 ## Repli
 
 Si le modèle ne produit aucun texte après avoir appelé un outil, la réponse est « ✅ Action enregistrée. » ; s'il n'a rien fait, « Je n'ai rien fait — peux-tu préciser ? ». Pour les briefings, si le modèle est indisponible (quota, panne), un briefing basique est envoyé plutôt que de faire échouer le cron.
@@ -134,7 +163,7 @@ Zod n'est plus utilisé que par les outils de l'IA : le webhook et le worker ont
 
 ---
 
-@@ page outils-ia | I | 4 | Les outils IA | Les 13 outils que le modèle peut appeler, et ceux qui ont été retirés.
+@@ page outils-ia | I | 4 | Les outils IA | Les 19 outils que le modèle peut appeler, et ceux qui ont été retirés.
 
 Définis dans `lib/ai/tools.ts`. Chaque outil a un schéma Zod et une description qui guide le modèle.
 
@@ -150,11 +179,17 @@ Définis dans `lib/ai/tools.ts`. Chaque outil a un schéma Zod et une descriptio
 | `add_shift_schedule` | Crée un bloc par jour ouvré pour un rythme de travail récurrent (type « Shift »). |
 | `list_milestones` | Liste les jalons non validés, triés par échéance. |
 | `update_briefing_schedule` | Change l'heure du briefing du matin ou du bilan du soir (met à jour le QStash Schedule et la base Réglages). |
-| `set_break` | Met Soza en pause entre deux dates : plus de briefing ni de bilan, et l'absence de bilan n'est pas reprochée. |
+| `set_break` | Met Løra en pause entre deux dates : plus de briefing ni de bilan, et l'absence de bilan n'est pas reprochée. |
 | `cancel_break` | Annule la pause en cours ou programmée. |
-| `record_progress` | Enregistre le bilan du jour dans Notion. Reçoit aussi, quand il y a plusieurs projets en cours, la liste de ceux sur lesquels l'utilisateur a avancé (`projectsWorkedOn`), écrite en tête du texte et rapprochée des vrais titres par le code. |
+| `record_progress` | Enregistre le bilan du jour dans Notion. Reçoit aussi, quand il y a plusieurs projets en cours, la liste de ceux sur lesquels l'utilisateur a avancé (`projectsWorkedOn`), écrite en tête du texte et rapprochée des vrais titres par le code, et `finishedProjects` (les projets dits terminés, terminés **après** l'écriture du bilan : une panne ne perd pas le bilan). |
+| `get_settings` | Lecture seule : heures du briefing et du bilan, pause en cours ou à venir, noms des applications déclarées par le PC. Chaque source est lue à part : une qui échoue est rendue « indisponible » sans masquer les autres. |
+| `get_agenda` | Lit l'agenda avec un libellé de jour calculé par le code (« demain », « dans 10 jours, dimanche 15/11 »), car le modèle comptait mal les jours de la semaine. |
+| `list_ideas` | Liste les idées par statut ou mot du titre (25 au plus ; les notes seulement sur recherche). |
+| `get_weather` | Météo du moment. |
+| `get_last_progress` | Dernier bilan enregistré. |
+| `get_briefing` | Redit presque tel quel le dernier briefing du matin ou du soir déjà généré. |
 
-**Recherche web.** En plus de ces 13 outils, le modèle dispose de la recherche intégrée du fournisseur (`web_search`). Il décide seul de s'en servir, pour une question extérieure ou récente seulement (jamais pour l'agenda ou les projets). La réponse doit tenir en deux ou trois phrases sans liste ni lien, et les marques de citation que la recherche ajoute sont retirées par le code. Si Groq rejette l'outil, un second essai a lieu sans la recherche, mais seulement si aucun outil d'écriture n'a déjà tourné. Voir [Avancement de la V2](#avancement-v2), étape 5, pour le coût en jetons.
+**Recherche web.** En plus de ces 19 outils, le modèle dispose de la recherche intégrée du fournisseur (`web_search`). Il décide seul de s'en servir, pour une question extérieure ou récente seulement (jamais pour l'agenda ou les projets). La réponse doit tenir en deux ou trois phrases sans liste ni lien, et les marques de citation que la recherche ajoute sont retirées par le code. Si Groq rejette l'outil, un second essai a lieu sans la recherche, mais seulement si aucun outil d'écriture n'a déjà tourné. Voir [Avancement de la V2](#avancement-v2), étape 5, pour le coût en jetons. **Tous les outils ne sont pas envoyés à chaque message** : un routage par mots-clés (`lib/ai/tool-routing.ts`) ne garde que ceux que le message évoque (voir [Le cœur IA](#coeur-ia)).
 
 ## Pourquoi un bloc par jour de shift
 
@@ -188,7 +223,7 @@ Le briefing envoyé sur Telegram est le texte complet. Une version courte (bilan
 
 ## Le briefing du soir
 
-Rédigé par Soza avec la même personnalité : la journée (tâches faites sur le total, puis celles qui restent, hors Shift), le prochain jalon, l'agenda des 7 jours, puis la question du bilan. **Ni météo ni actualités.**
+Rédigé par Løra avec la même personnalité : la journée (tâches faites sur le total, puis celles qui restent, hors Shift), le prochain jalon, l'agenda des 7 jours, puis la question du bilan. **Ni météo ni actualités.**
 
 Garde-fous :
 
@@ -206,6 +241,12 @@ Une version courte est enregistrée dans Redis (`last-evening-briefing`, 20 heur
 - Pendant la pause, `cron-morning` et `cron-evening` répondent « ignoré » et n'envoient rien.
 - Le lendemain de la fin, le briefing n'annonce pas de bilan manquant : il accueille la reprise et rappelle le dernier bilan d'avant la pause. Le surlendemain, l'absence de bilan est de nouveau signalée.
 - Elle n'est pas dans Notion : cela évite de modifier le schéma d'une base de production pour un état transitoire. Contrepartie : elle n'est pas visible dans Notion ni encore dans le dashboard.
+
+## Fin de projet, jalons manqués et mots relatifs (novembre 2026)
+
+- **Un projet dit terminé dans un bilan est terminé dans Notion** (03/11) : `record_progress` accepte la liste des projets terminés, les termine après avoir écrit le bilan, rapproche leurs noms des projets en cours et valide **tous** les jalons ouverts liés. La consigne héritée « demande une preuve concrète pour valider un jalon » est remplacée par « la parole de l'utilisateur suffit ». Voir le bug [18](#bugs).
+- **Jalons manqués** : au début du cron du matin, les jalons « À faire » à l'échéance passée passent en « Manqué » (un statut Notion seulement : aucune dégradation visuelle). Au premier cron après le déploiement, tous les jalons déjà en retard passent d'un coup.
+- **Mots relatifs du bilan décalés par le code** (04/11) : le bilan est écrit la veille, donc son « demain matin » devient « ce matin » dans le briefing, par une fonction et non par une consigne au modèle. Voir le bug [17](#bugs). Un jour en toutes lettres (« demain jeudi »), « cette semaine » et « le week-end » ne sont pas décalés.
 
 ---
 
@@ -233,13 +274,14 @@ La colonne **Catégorie** (15 options, les mêmes noms que les pastilles de logo
 | `last-briefing` | Version courte du briefing du matin, pour le dashboard | 20 heures |
 | `last-evening-briefing` | Version courte du briefing du soir | 20 heures |
 | `break` | Pause en cours : `{ start, end }` | jusqu'à 3 jours après la fin |
-| `protocol:run` | Protocole en attente ou en cours : code, étapes, indicateur « déjà remis au PC » | 15 minutes |
+| `protocol:run` | Protocole ou ouverture d'applications en attente : code, étapes, indicateur « déjà remis au PC » | 15 minutes |
+| `agent:apps` | Les noms (jamais les chemins) des applications que le PC déclare | sans expiration |
 
 ## Fichier local (application de bureau)
 
 `usage.json`, dans `%APPDATA%\com.soza.assistant\` : les secondes passées par jour et par application. Il reste sur la machine ; rien n'est envoyé à Notion ni au backend.
 
-Trois autres fichiers, dans le même dossier, sont créés vides au premier lancement et relus à chaque commande : `apps.json` (la liste blanche des applications que la barre de commande et les protocoles peuvent ouvrir ou fermer), un fichier d'identifiants pour la recherche d'un morceau par son nom, et `agent.json` (l'adresse de l'API et la clé que le PC utilise pour récupérer les protocoles). Aucun n'est versionné.
+D'autres fichiers, dans le même dossier, sont créés au premier lancement et relus à chaque commande, jamais versionnés : `apps.json` (la liste blanche des applications que la barre de commande, les modes et les protocoles peuvent ouvrir ou fermer), `modes.json` (les modes de travail), un fichier d'identifiants pour la recherche d'un morceau par son nom et un fichier de jeton de renouvellement pour les titres likés, `agent.json` (l'adresse de l'API et la clé que le PC utilise pour récupérer les protocoles), `voice.json` (volume de la voix, mots dits avec l'accent anglais), `listen.json` (réglages de l'écoute du micro) et `claude.json`. Deux fichiers servent de boîte aux lettres pour Claude Code (`say.txt`, `claude-last.json`). La liste commentée est dans [Commandes et variables](#commandes).
 
 ## Migration Notion
 
