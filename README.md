@@ -1,15 +1,15 @@
-# Wiki Soza
+# Wiki Løra
 
-Wiki de documentation du projet **Soza** (assistant personnel piloté par Telegram, doublé d'une application de bureau Windows). Un site statique à page unique : barre latérale numérotée, recherche, onglets de pages ouvertes, rail « dans cette page », statuts colorés.
+Wiki de documentation du projet **Løra** (assistant personnel piloté par Telegram, doublé d'une application de bureau Windows). Un site statique à page unique : barre latérale numérotée, recherche, onglets de pages ouvertes, rail « dans cette page », statuts colorés.
 
-Le contenu est consolidé à partir du dépôt Soza (README, état du projet, journal de construction, document de la V2, code et tests) au **09/10/2026**. En cas de conflit, le dépôt Soza fait foi.
+Le contenu est consolidé à partir du dépôt Løra (README, état du projet, journal de construction, document de la V2, code et tests) au **09/10/2026**, mis à jour le 17/10 puis le 06/11/2026. L'assistante s'appelait Soza jusqu'au 05/11/2026 ; ce dépôt (`soza-wiki`), l'API JavaScript `window.SozaWiki` et le nom du fichier téléchargé gardent l'ancien nom pour ne pas casser un portfolio qui les utilise. En cas de conflit, le dépôt Løra fait foi.
 
 ## Contenu
 
-23 pages en deux parties.
+24 pages en deux parties.
 
 - **Partie I : le projet (V1)** : en bref, architecture, cœur IA, outils IA, briefings et pause, données, déploiement, application de bureau, dashboard en verre, avatar (ruban de Möbius), tests, sécurité, décisions, retraits, bugs et causes racines, clôture de la V1.
-- **Partie II : référence et V2** : chronologie, vision V2, chantiers V2, commandes et variables, glossaire, sources.
+- **Partie II : référence et V2** : chronologie, vision V2, avancement de la V2, la voix de Løra, chantiers V2, commandes et variables, glossaire, sources.
 
 ## Lancer en local
 

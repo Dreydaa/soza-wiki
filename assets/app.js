@@ -3,7 +3,7 @@
 
   const FILES = ["content/home.md", "content/partie-1a.md", "content/partie-1b.md", "content/partie-1c.md", "content/partie-2.md"];
   const PARTS = {
-    I: { title: "Partie I", name: "Le projet (V1)", blurb: "Comment Soza est construite : architecture, IA, application, tests, décisions, bugs." },
+    I: { title: "Partie I", name: "Le projet (V1)", blurb: "Comment Løra est construite : architecture, IA, application, tests, décisions, bugs." },
     II: { title: "Partie II", name: "Référence et vision V2", blurb: "Chronologie, V2, commandes, glossaire, sources." },
   };
   const STORE = "soza-wiki-tabs";
@@ -225,7 +225,7 @@
     const p = byId.get(active);
     view.innerHTML = pageHTML(p);
     view.scrollTo({ top: 0, behavior: "instant" });
-    document.title = p.id === "accueil" ? "Wiki Soza" : `${p.title} · Wiki Soza`;
+    document.title = p.id === "accueil" ? "Wiki Løra" : `${p.title} · Wiki Løra`;
     drawTabs();
     markNav();
   }

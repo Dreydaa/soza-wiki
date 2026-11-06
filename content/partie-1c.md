@@ -15,7 +15,13 @@
 | **Fenêtre verrouillée en 1440 ou 1920 de large** | Mise en page responsive complète | Une app de bureau n'a pas besoin d'un mode mobile ; la grille est mise à l'échelle | Pas d'usage sur petit écran |
 | **Temps d'écran mesuré en Rust, gardé sur la machine** | L'envoyer à Notion ou au backend | Ce qu'on fait sur son ordinateur est une donnée sensible : elle n'a pas à quitter la machine, et un fichier local évite tout réseau | Visible seulement dans l'app, Windows uniquement |
 | **Fermer la fenêtre la masque** | Quitter l'application | Le suivi et le démarrage automatique supposent une app qui reste vivante ; « Quitter » est explicite dans la zone de notification | L'app reste en mémoire |
-| **Des tests sans aucun vrai service** | Tester contre les vrais Notion, Redis, Groq | Rapides (moins d'une seconde pour 318 tests), reproductibles, sans risque pour les vraies données ; tout appel réseau non prévu fait échouer le test | Un seul test (`test:live`), lancé à la main, valide les vraies APIs |
+| **Le PC va chercher ses étapes** | Ouvrir un port sur le PC, ou l'allumer à distance | Aucun port ouvert ; le PC interroge le backend toutes les 30 s ; l'allumage est fait par l'utilisateur avec l'application de sa prise connectée | Environ 2 900 lectures Redis par jour ; un PC éteint ne reprend le protocole qu'au démarrage de l'application |
+| **Reconnaissance vocale locale (Whisper) avec mot d'activation tout de suite** | Un raccourci à maintenir (plus fiable, sans faux déclenchements : c'était la recommandation) ; un service de reconnaissance en ligne | Choix de l'utilisateur ; l'audio ne quitte pas le PC | Faux déclenchements possibles (noms proches, télévision) ; installation à la main, 1,7 Go |
+| **Une voix entraînée sur des enregistrements consentis (Piper)** | Un clonage sans entraînement (jugé « très médiocre »), des voix cloud payantes, la transformation de sa propre voix | Pas de clonage d'une voix sans accord écrit ; Piper est local et gratuit ; les conditions d'un service cloud interdisent d'entraîner un autre modèle avec ses sorties | Environ 6 h d'entraînement, 45 minutes à enregistrer ; attribution à prévoir si la voix est distribuée |
+| **Alléger les appels plutôt que payer** | Un palier payant de Groq ou une API payante | L'utilisateur refuse de payer au jeton ; le goulot est la limite de 8 000 jetons par minute | Un routage par mots-clés à maintenir ; un second modèle qui suit moins bien la personnalité |
+| **Confirmer à voix haute avant d'écrire dans Notion** | Écrire directement, comme sur Telegram | Une phrase mal comprise ne doit pas écrire des données | Un échange de plus |
+| **La zone de texte de la barre reste** | Tout passer à la voix | Un micro en panne ou une impossibilité de parler ne doivent pas enfermer l'utilisateur dehors | Deux entrées à maintenir |
+| **Des tests sans aucun vrai service** | Tester contre les vrais Notion, Redis, Groq | Rapides (environ une seconde pour 411 tests), reproductibles, sans risque pour les vraies données ; tout appel réseau non prévu fait échouer le test | Un seul test (`test:live`), lancé à la main, valide les vraies APIs |
 
 ---
 
@@ -33,12 +39,16 @@ Chaque retrait est daté et motivé dans l'état du projet (`docs/ai/STATUS.md`)
 | **5 dépendances inutilisées** | 08/10/2026 | Le build du front reste identique à l'octet près. |
 | **La dégradation visuelle de l'interface après un jalon manqué** | 08/10/2026 | Envisagée, puis abandonnée, hors V1 comme hors V2. Une décision explicite vaut mieux qu'une idée qui traîne dans la liste des « à faire ». |
 | **Le second fournisseur de modèle** (Gemini), la refonte visuelle « éditoriale », le parallax du fond, une première version du fond en poussière à quatre couches, la mise en page mobile | 24/09 → 06/10/2026 | Essayés puis abandonnés. |
+| **La voix de Windows, puis son retour** | 18 → 19/10/2026 | Faite le 18/10, retirée le jour même quand l'utilisateur a cherché une voix plus naturelle, remise le 19/10 « en attendant » ; elle reste le repli de la voix entraînée. |
+| **Quatre pistes de voix** (Piper avec ses voix de série, voix cloud payantes, transformation de sa propre voix, clonage sans entraînement) | 18/10 → 02/11/2026 | Essayées ou étudiées puis écartées ; tout ce qui avait été installé pour les essais a été supprimé (environ 37 Go sur deux séances). |
+| **L'allumage du PC par Løra** (prise connectée, réveil par le réseau) | 17/10/2026 | Écarté : l'utilisateur démarre son PC lui-même avec l'application de sa prise. |
+| **Les premières formes du retour visuel de la voix** (ruban réduit de moitié, étoile à six branches) | 06/11/2026 | Remplacées à la demande de l'utilisateur par un huit à l'écoute et un spectre circulaire en parole. |
 
 <span class="st st-repl">Retiré</span> Ne pas réintroduire le streak : c'est une décision de l'utilisateur.
 
 ---
 
-@@ page bugs | I | 15 | Bugs et causes racines | Quinze bugs : symptôme, cause, correction, leçon.
+@@ page bugs | I | 15 | Bugs et causes racines | Vingt bugs : symptôme, cause, correction, leçon.
 
 Chaque entrée suit le même plan : **symptôme → cause → correction → leçon**.
 
@@ -102,6 +112,26 @@ Le ruban avait été plafonné à 30 images/s au repos pour économiser le CPU (
 
 Le prompt de personnalité donnait « Boss » comme appellation par défaut, et ses exemples commençaient par ce mot. **Correction** : trois surnoms alternés, jamais le même deux messages de suite, et pas de surnom dans la plupart des messages (un seul, pour saluer, marquer une remarque ou adoucir un rappel) ; la question de repli du briefing du soir n'a plus de surnom en dur. **Suite, 14/10/2026** : la règle « jamais le même deux fois de suite » ne tenait pas, car le modèle n'a aucune mémoire d'un appel à l'autre et retombait sur « patron ». Le code tire désormais au hasard un surnom pour les briefings du matin et du soir et le donne au modèle ; le prompt interdit tout surnom ailleurs. <span class="st st-prop">Non vérifié</span> : le texte réel du modèle (seul le contenu du prompt est testé). *Leçon : une valeur « par défaut » écrite dans un prompt tend à devenir un tic ; mieux vaut décrire quand l'employer. Et une règle qui suppose une mémoire que le modèle n'a pas se déplace dans le code.*
 
+## 16. Le worker se bloque sur la limite de débit du modèle
+
+Deux messages du soir (18/10) restent sans réponse sur Telegram et chacun est traité plusieurs fois, en écrivant à chaque fois dans Notion. **Cause** : trois pièces qui s'enchaînent mal. (1) Le palier gratuit de Groq limite à 8 000 jetons par minute, et un appel pèse au moins 3 748 jetons avant le message de l'utilisateur : une question avec outils en demande 11 000 à 14 000. Les journaux de Groq montrent 12 appels réussis et 16 refus « tokens per minute » sur une heure. (2) Le worker est coupé par Vercel après 25 s sans réponse, et la bibliothèque d'IA attend puis réessaie après chaque refus. (3) QStash relance tout ce qui n'est pas un 2xx, et chaque relance refaisait toute la conversation, écritures Notion comprises, avec des titres un peu différents : des doublons. En cas d'échec, rien n'était envoyé à l'utilisateur. **Correction** : plus de relance automatique (`retries: 0`), le worker répond 200 après avoir prévenu sur Telegram (« vérifie avant de le renvoyer »), échec à 20 s au lieu de 25 ; puis l'allègement des appels (voir [Le cœur IA](#coeur-ia)). *Leçon : un système de relances qui rejoue des effets de bord a besoin d'idempotence, ou de ne rien rejouer ; et un goulot de débit se mesure dans les journaux du fournisseur, pas dans le code.* Les doublons créés ont été supprimés à la main par l'utilisateur. <span class="st st-prop">Non vérifié</span> Un vrai repli de modèle sur un vrai refus.
+
+## 17. Un « demain » recopié du bilan, corrigé deux fois
+
+Le briefing du matin reprenait le « demain » du bilan écrit la veille et parlait de « demain matin » au lieu de « ce matin ». **Première correction (13/10)** : une consigne au modèle (« les mots relatifs du bilan sont décalés d'un jour »), notée non vérifiée. Le bug est revenu le 04/11 sous la même forme. **Correction de fond** : une fonction convertit les mots relatifs en code, en un seul passage (« demain matin » → « ce matin », « demain » → « aujourd'hui », « après-demain » → « demain », « hier » → « avant-hier »…), seulement pour un bilan daté d'hier, sans toucher « ce matin-là » ni un mot qui contient ces mots. *Leçon : une consigne à un modèle n'est pas un correctif ; ce qui doit être exact se calcule dans le code.* Limites : un jour en toutes lettres, « cette semaine » et « le week-end » ne sont pas décalés.
+
+## 18. Un projet dit terminé mais jamais terminé dans Notion
+
+Le bilan du 01/11 disait qu'un site était terminé ; il restait « En cours » (donc dans les projets du briefing et sur la carte Projets) et son jalon « À faire ». **Causes** : (1) une consigne héritée d'un autre projet demandait une preuve concrète pour valider un jalon ; (2) la recherche d'une idée cherchait le texte tel quel (« le site d'untel » ne trouvait pas « Site pour untel ») ; (3) un seul jalon lié était validé alors que les relances du bug 16 avaient pu en créer plusieurs ; (4) rien ne posait le statut « Manqué ». **Corrections** : « la parole de l'utilisateur suffit » ; `record_progress` accepte les projets terminés et les termine après l'écriture du bilan ; les noms sont rapprochés des projets en cours (les petits mots sont ignorés) ; tous les jalons ouverts liés sont validés ; au début du cron du matin, les jalons « À faire » en retard passent en « Manqué ». *Leçon : une règle de prompt héritée d'un autre projet peut bloquer en silence une fonction ; et un seul chemin d'écriture pour « terminer » évite deux comportements.* <span class="st st-prop">Non vérifié</span> Le comportement réel du modèle (il peut oublier le champ) ; au premier cron après le déploiement, tous les jalons déjà en retard passent en « Manqué » d'un coup.
+
+## 19. Une voix qui prononce tous les accents de travers
+
+Sur la voix entraînée, « prêt, à demain » était mal dit. **Cause** : l'exécutable de la synthèse lisait son entrée en cp1252 (l'encodage de Windows pour un tube) au lieu d'UTF-8 : « prêt » arrivait sous la forme « prÃªt ». L'essai de départ (« Bonjour, je suis Løra. ») ne contenait aucun accent. **Correction** : lecture en UTF-8, vérifiée aux phonèmes produits. *Leçon : tester avec une phrase qui contient les caractères difficiles, pas la plus simple ; et regarder ce que le programme a reçu, pas ce qu'on lui a envoyé.* L'utilisateur a jugé le rendu des accents satisfaisant après la correction.
+
+## 20. Un tirage au sort qui ne tire jamais « patron »
+
+Les phrases « Claude Code a terminé » reçoivent un surnom une fois sur deux, tiré parmi trois. **Cause**, trouvée à la relecture du 06/11 : le tirage utilisait les nanosecondes de l'horloge ; or l'horloge de Windows tourne à 100 ns, donc les nanosecondes sont toujours un multiple de 100 et, modulo 6, que des valeurs paires : « patron » ne sortait jamais. Le test ne pouvait pas le voir, il fournit lui-même le tirage. **Correction** : les microsecondes. *Leçon : un test qui injecte l'aléa ne teste pas la source de l'aléa.*
+
 ---
 
 @@ page cloture-v1 | I | 16 | Clôture de la V1 | Ce qui est livré, ce qui a été vérifié le 09/10/2026, l'échec connu et ce qui ne l'est pas.
@@ -110,7 +140,7 @@ La V1 a été **déclarée terminée par l'utilisateur le 09/10/2026**, après t
 
 ## Ce qui est livré
 
-- **Backend en production** : webhook Telegram, worker, crons du matin et du soir (briefings rédigés par Soza), endpoint du dashboard ; 13 outils IA, une seule personnalité, pause de plusieurs jours.
+- **Backend en production** : webhook Telegram, worker, crons du matin et du soir (briefings rédigés par Løra), endpoint du dashboard ; 13 outils IA, une seule personnalité, pause de plusieurs jours.
 - **Application de bureau** : intro en particules puis dashboard en verre, temps d'écran réel, démarrage avec Windows, zone de notification, installeur NSIS, barre de titre aux couleurs du fond.
 - **Qualité** : 286 tests, deux passes d'optimisation mesurées, documentation à jour.
 
@@ -160,9 +190,9 @@ La catégorie Notion lue par le code (les logos restent devinés), le statut `Te
 - Une valeur « par défaut » écrite dans un prompt tend à se retrouver partout dans les réponses.
 - Déclarer « terminé » n'efface pas la liste de ce qu'on n'a pas vérifié : la clôture l'inscrit au lieu de l'omettre.
 
-## Depuis la clôture (12 → 17/10/2026)
+## Depuis la clôture (12/10 → 06/11/2026)
 
-Neuf étapes, une pull request chacune (PR #12 à #23, dont quelques PR de documentation et de correctif), faites du plus simple au plus dur. Le détail des étapes 4 à 8 est dans [Avancement de la V2](#avancement-v2) :
+Une pull request par étape (PR #12 à #39 : étapes, correctifs et documentation), faites du plus simple au plus dur. Le détail est dans [Avancement de la V2](#avancement-v2) et [La voix de Løra](#voix) :
 
 | Étape | Ce qui a changé | Statut |
 | --- | --- | --- |
@@ -171,9 +201,12 @@ Neuf étapes, une pull request chacune (PR #12 à #23, dont quelques PR de docum
 | 2 | `/api/dashboard` expose la pause en cours ou à venir ; le bloc briefing l'annonce (pas de persistance Notion, Redis suffit) | <span class="st st-ok">Fait</span> ; <span class="st st-prop">Non vérifié</span> sur le vrai Redis |
 | 3 | Cause du lag mesurée, réfraction du verre coupée | <span class="st st-ok">Fait</span> |
 | 4 | Ouvrir et fermer une application nommée depuis une barre `Ctrl+K` | <span class="st st-ok">Fait</span> validé par l'utilisateur |
-| 5 | Recherche web de Soza sur Telegram | <span class="st st-ok">Fait</span> sur le vrai modèle ; <span class="st st-prop">Non vérifié</span> sur Telegram |
+| 5 | Recherche web de Løra sur Telegram | <span class="st st-ok">Fait</span> sur le vrai modèle ; <span class="st st-prop">Non vérifié</span> sur Telegram |
 | 6 | Volume, musique, batterie de la souris | <span class="st st-ok">Fait</span> essayés sur la vraie machine |
 | 7 | Plusieurs projets en parallèle | <span class="st st-ok">Fait</span> confirmé par l'utilisateur |
-| 8 | Moteur de protocoles, premier protocole | <span class="st st-ok">Fait</span> côté code ; <span class="st st-prop">Non vérifié</span> essai réel |
+| 8 | Moteur de protocoles, premier protocole | <span class="st st-ok">Fait</span> essayé en réel par l'utilisateur le 05/11/2026 ; deux autres protocoles reportés |
+| 9 | La voix : synthèse entraînée sur des enregistrements consentis, reconnaissance locale, mot d'activation | <span class="st st-ok">Fait</span> essayés avec la vraie voix le 05/11/2026 ; <span class="st st-prop">Non vérifié</span> temps d'usage, faux déclenchements, application installée |
+| 10 | Widget de bureau, ruban synchronisé sur la vraie voix | <span class="st st-ok">Fait</span> côté code et dans un navigateur ; <span class="st st-prop">Non vérifié</span> application réelle |
+| 13 | Élargir les commandes vocales : `api/ask`, commandes de contrôle, modes de travail, Claude Code | <span class="st st-ok">Fait</span> côté code ; <span class="st st-prop">Non vérifié</span> essai réel des lots du 06/11 |
 
 Resté ouvert : le démarrage automatique réel et le menu de la zone de notification ne sont pas vérifiés (l'app installée est celle de l'installeur du 13/10, essayée par l'utilisateur pour l'étape 4), la passe sécurité n'a pas été faite sur le code réel, et les textes réels des briefings avec le nouveau code n'ont pas été observés. `npm run test:live` a été relancé le 13/10/2026 : 48/48 sur le vrai Notion, Redis et Groq. Les anciennes idées passées `Archivée` alors qu'elles étaient finies ne comptent pas dans « Finis » tant qu'elles ne sont pas repassées en `Terminé` dans Notion.
