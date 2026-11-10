@@ -21,7 +21,12 @@
 | **Alléger les appels plutôt que payer** | Un palier payant de Groq ou une API payante | L'utilisateur refuse de payer au jeton ; le goulot est la limite de 8 000 jetons par minute | Un routage par mots-clés à maintenir ; un second modèle qui suit moins bien la personnalité |
 | **Confirmer à voix haute avant d'écrire dans Notion** | Écrire directement, comme sur Telegram | Une phrase mal comprise ne doit pas écrire des données | Un échange de plus |
 | **La zone de texte de la barre reste** | Tout passer à la voix | Un micro en panne ou une impossibilité de parler ne doivent pas enfermer l'utilisateur dehors | Deux entrées à maintenir |
-| **Des tests sans aucun vrai service** | Tester contre les vrais Notion, Redis, Groq | Rapides (environ une seconde pour 411 tests), reproductibles, sans risque pour les vraies données ; tout appel réseau non prévu fait échouer le test | Un seul test (`test:live`), lancé à la main, valide les vraies APIs |
+| **Répondre sans modèle quand le code le peut** | Tout envoyer au modèle (la recherche web coûte 19 000 à 41 000 jetons) | Heure, minuteurs, météo de demain, conversions, titres, compte à rebours se fabriquent en code : zéro jeton, réponse immédiate ; une demande reconnue ne retombe jamais sur le gros modèle (si un service est en panne, la réponse le dit) | Des reconnaissances à maintenir ; une phrase proche d'une demande reconnue peut être mal captée |
+| **Aucun ordre ne descend vers le PC, sauf les protocoles** | Piloter le PC depuis Telegram (« verrouille le PC ») | Garder la surface d'attaque petite : seuls la présence du PC et « envoie-moi ça » existent | Pas de verrouillage à distance |
+| **Une confirmation vocale pour ce qui éteint ou efface** | Exécuter directement | Une phrase mal comprise ne doit pas éteindre le PC ni vider la corbeille : question, « oui » dans les 30 secondes, délai de 30 secondes avant l'extinction | Un échange de plus |
+| **Les moteurs de voix hors du dossier effaçable** | Les laisser dans le dossier de données de l'application | La case « supprimer les données » du désinstalleur avait tout effacé (1,9 Go posés à la main) ; un dossier voisin n'est pas touché | Un dossier de plus à connaître |
+| **Abandonner une fonction qui ne tient pas** (« qu'est-ce que je regarde ? ») | La garder « au cas où » | Inutile pour l'utilisateur, coût en jetons non rentable, et le modèle de vision inventait le contenu de l'écran | Du code écrit puis retiré |
+| **Des tests sans aucun vrai service** | Tester contre les vrais Notion, Redis, Groq | Rapides (environ une seconde pour 472 tests), reproductibles, sans risque pour les vraies données ; tout appel réseau non prévu fait échouer le test | Un seul test (`test:live`), lancé à la main, valide les vraies APIs |
 
 ---
 
@@ -43,12 +48,13 @@ Chaque retrait est daté et motivé dans l'état du projet (`docs/ai/STATUS.md`)
 | **Quatre pistes de voix** (Piper avec ses voix de série, voix cloud payantes, transformation de sa propre voix, clonage sans entraînement) | 18/10 → 02/11/2026 | Essayées ou étudiées puis écartées ; tout ce qui avait été installé pour les essais a été supprimé (environ 37 Go sur deux séances). |
 | **L'allumage du PC par Løra** (prise connectée, réveil par le réseau) | 17/10/2026 | Écarté : l'utilisateur démarre son PC lui-même avec l'application de sa prise. |
 | **Les premières formes du retour visuel de la voix** (ruban réduit de moitié, étoile à six branches) | 06/11/2026 | Remplacées à la demande de l'utilisateur par un huit à l'écoute et un spectre circulaire en parole. |
+| **« Qu'est-ce que je regarde ? »** (capture d'écran et modèle de vision) | 08/11/2026 | Décision de l'utilisateur : fonction inutile, coût en jetons non rentable. Code retiré (capture, commande, champ image de `api/ask`, deux dépendances, tests) ; le modèle de vision inventait le contenu de l'écran. Il n'existe plus que dans l'historique git. |
 
 <span class="st st-repl">Retiré</span> Ne pas réintroduire le streak : c'est une décision de l'utilisateur.
 
 ---
 
-@@ page bugs | I | 15 | Bugs et causes racines | Vingt bugs : symptôme, cause, correction, leçon.
+@@ page bugs | I | 15 | Bugs et causes racines | Vingt-trois bugs : symptôme, cause, correction, leçon.
 
 Chaque entrée suit le même plan : **symptôme → cause → correction → leçon**.
 
@@ -118,7 +124,7 @@ Deux messages du soir (18/10) restent sans réponse sur Telegram et chacun est t
 
 ## 17. Un « demain » recopié du bilan, corrigé deux fois
 
-Le briefing du matin reprenait le « demain » du bilan écrit la veille et parlait de « demain matin » au lieu de « ce matin ». **Première correction (13/10)** : une consigne au modèle (« les mots relatifs du bilan sont décalés d'un jour »), notée non vérifiée. Le bug est revenu le 04/11 sous la même forme. **Correction de fond** : une fonction convertit les mots relatifs en code, en un seul passage (« demain matin » → « ce matin », « demain » → « aujourd'hui », « après-demain » → « demain », « hier » → « avant-hier »…), seulement pour un bilan daté d'hier, sans toucher « ce matin-là » ni un mot qui contient ces mots. *Leçon : une consigne à un modèle n'est pas un correctif ; ce qui doit être exact se calcule dans le code.* Limites : un jour en toutes lettres, « cette semaine » et « le week-end » ne sont pas décalés.
+Le briefing du matin reprenait le « demain » du bilan écrit la veille et parlait de « demain matin » au lieu de « ce matin ». **Première correction (13/10)** : une consigne au modèle (« les mots relatifs du bilan sont décalés d'un jour »), notée non vérifiée. Le bug est revenu le 04/11 sous la même forme. **Correction de fond** : une fonction convertit les mots relatifs en code, en un seul passage (« demain matin » → « ce matin », « demain » → « aujourd'hui », « après-demain » → « demain », « hier » → « avant-hier »…), seulement pour un bilan daté d'hier, sans toucher « ce matin-là » ni un mot qui contient ces mots. *Leçon : une consigne à un modèle n'est pas un correctif ; ce qui doit être exact se calcule dans le code.* Limites : un jour en toutes lettres, « cette semaine » et « le week-end » ne sont pas décalés. **Vérifié sur de vrais briefings le 08/11/2026** (textes lus dans Redis) : le « demain » du bilan du 07/11 est bien devenu « aujourd'hui ».
 
 ## 18. Un projet dit terminé mais jamais terminé dans Notion
 
@@ -131,6 +137,18 @@ Sur la voix entraînée, « prêt, à demain » était mal dit. **Cause** : l'ex
 ## 20. Un tirage au sort qui ne tire jamais « patron »
 
 Les phrases « Claude Code a terminé » reçoivent un surnom une fois sur deux, tiré parmi trois. **Cause**, trouvée à la relecture du 06/11 : le tirage utilisait les nanosecondes de l'horloge ; or l'horloge de Windows tourne à 100 ns, donc les nanosecondes sont toujours un multiple de 100 et, modulo 6, que des valeurs paires : « patron » ne sortait jamais. Le test ne pouvait pas le voir, il fournit lui-même le tirage. **Correction** : les microsecondes. *Leçon : un test qui injecte l'aléa ne teste pas la source de l'aléa.*
+
+## 21. Une réinstallation qui efface ce qui avait été posé à la main
+
+Après la réinstallation du 06/11, la reconnaissance vocale, la synthèse (1,9 Go) et plusieurs fichiers de réglage avaient disparu. **Cause** (déduite des dates, la désinstallation n'a pas été vue) : la case « supprimer les données de l'application » du désinstalleur efface les deux dossiers de l'application, et la voix avait été posée à la main dans l'un d'eux ; les deux dossiers ont été recréés dans la même seconde au premier lancement. **Correction** : les moteurs de voix sont déplacés dans un dossier voisin que la case ne touche pas, une confirmation (« non » par défaut, « non » aussi en mode silencieux) est ajoutée à la désinstallation, la liste des applications est restaurée à partir d'une transcription ; les identifiants de la musique, l'historique du temps d'écran et d'éventuels réglages de voix sont perdus. *Leçon : ce qui est installé à la main ne doit pas vivre dans un dossier qu'un désinstalleur a le droit de vider ; et une sauvegarde qui n'existe pas se découvre le jour où on en a besoin.* <span class="st st-prop">Non vérifié</span> Aucune vraie désinstallation essayée ; l'installeur n'est pas reconstruit, le désinstalleur actuel n'a pas la confirmation.
+
+## 22. La connexion au compte de musique ouvre le dossier Documents
+
+La phrase « connecte… » ouvrait l'explorateur de fichiers sur le dossier Documents au lieu du navigateur. **Cause** : l'adresse d'autorisation, longue et pleine de `%` et de `&`, était confiée à l'explorateur de fichiers, qui ne la comprenait pas. **Correction** : les adresses web passent par le gestionnaire de protocole de Windows ; seules les adresses propres au lecteur de musique restent sur l'explorateur. *Leçon : un programme qui ouvre « n'importe quoi » ne se comporte pas pareil selon ce qu'on lui passe ; tester avec la vraie adresse, pas une courte.* Trouvé à l'usage par l'utilisateur le 10/11 ; la reconnexion a été refaite.
+
+## 23. « Mets » lance une musique quand on veut autre chose
+
+« Mets la page en plein écran » lançait une musique, puis « mets en fenêtré » aussi. **Cause** : dans la reconnaissance de la musique, « mets X » signifie « joue X » : toute phrase qui commence par « mets » partait en recherche de morceau. **Correction** : « plein écran », « agrandis » et « en fenêtré » sont reconnus avant la musique. **Limite** : la touche F11 bascule sans connaître l'état de la fenêtre. *Leçon : un verbe courant est un piège ; l'ordre dans lequel le code essaie ses reconnaissances est une décision de conception, pas un détail.* Trouvé deux fois par l'utilisateur à l'usage (09 et 10/11).
 
 ---
 
@@ -190,9 +208,9 @@ La catégorie Notion lue par le code (les logos restent devinés), le statut `Te
 - Une valeur « par défaut » écrite dans un prompt tend à se retrouver partout dans les réponses.
 - Déclarer « terminé » n'efface pas la liste de ce qu'on n'a pas vérifié : la clôture l'inscrit au lieu de l'omettre.
 
-## Depuis la clôture (12/10 → 06/11/2026)
+## Depuis la clôture (12/10 → 10/11/2026)
 
-Une pull request par étape (PR #12 à #39 : étapes, correctifs et documentation), faites du plus simple au plus dur. Le détail est dans [Avancement de la V2](#avancement-v2) et [La voix de Løra](#voix) :
+Une pull request par étape (PR #12 à #47 : étapes, correctifs et documentation), faites du plus simple au plus dur. Le détail est dans [Avancement de la V2](#avancement-v2), [La voix de Løra](#voix) et [Les commandes de Løra](#commandes-vocales) :
 
 | Étape | Ce qui a changé | Statut |
 | --- | --- | --- |
@@ -205,8 +223,9 @@ Une pull request par étape (PR #12 à #39 : étapes, correctifs et documentatio
 | 6 | Volume, musique, batterie de la souris | <span class="st st-ok">Fait</span> essayés sur la vraie machine |
 | 7 | Plusieurs projets en parallèle | <span class="st st-ok">Fait</span> confirmé par l'utilisateur |
 | 8 | Moteur de protocoles, premier protocole | <span class="st st-ok">Fait</span> essayé en réel par l'utilisateur le 05/11/2026 ; deux autres protocoles reportés |
-| 9 | La voix : synthèse entraînée sur des enregistrements consentis, reconnaissance locale, mot d'activation | <span class="st st-ok">Fait</span> essayés avec la vraie voix le 05/11/2026 ; <span class="st st-prop">Non vérifié</span> temps d'usage, faux déclenchements, application installée |
-| 10 | Widget de bureau, ruban synchronisé sur la vraie voix | <span class="st st-ok">Fait</span> côté code et dans un navigateur ; <span class="st st-prop">Non vérifié</span> application réelle |
-| 13 | Élargir les commandes vocales : `api/ask`, commandes de contrôle, modes de travail, Claude Code | <span class="st st-ok">Fait</span> côté code ; <span class="st st-prop">Non vérifié</span> essai réel des lots du 06/11 |
+| 9 | La voix : synthèse entraînée sur des enregistrements consentis, reconnaissance locale, mot d'activation | <span class="st st-ok">Fait</span> essayés avec la vraie voix le 05/11/2026, validés par l'utilisateur le 08/11/2026 |
+| 10 | Widget de bureau, ruban synchronisé sur la vraie voix | <span class="st st-ok">Fait</span> validés par l'utilisateur le 08/11/2026 |
+| 11 | « Qu'est-ce que je regarde ? » | <span class="st st-repl">Retiré</span> abandonnée le 08/11/2026, code retiré |
+| 13 | Élargir les commandes vocales : `api/ask`, commandes de contrôle, modes de travail, Claude Code, près de vingt « broutilles », réponses sans modèle, outils Notion | <span class="st st-ok">Fait</span> validées par l'utilisateur (08 et 10/11/2026, sur sa parole) ; essayées avant contre des simulations |
 
-Resté ouvert : le démarrage automatique réel et le menu de la zone de notification ne sont pas vérifiés (l'app installée est celle de l'installeur du 13/10, essayée par l'utilisateur pour l'étape 4), la passe sécurité n'a pas été faite sur le code réel, et les textes réels des briefings avec le nouveau code n'ont pas été observés. `npm run test:live` a été relancé le 13/10/2026 : 48/48 sur le vrai Notion, Redis et Groq. Les anciennes idées passées `Archivée` alors qu'elles étaient finies ne comptent pas dans « Finis » tant qu'elles ne sont pas repassées en `Terminé` dans Notion.
+Au 10/11/2026, l'utilisateur déclare la liste « non vérifié » de la V1 soldée (« la V1 est finie, tout est bon », pause comprise) et dit qu'il ne reste que l'étape 12 et l'étape 8 (deux protocoles reportés) ; je n'ai rien rejoué. La passe sécurité a été faite le 08/11 (rien de bloquant), de vrais textes de briefings ont été lus le 08/11, et `npm run test:live` avait été relancé le 13/10/2026 (48/48 sur le vrai Notion, Redis et Groq). Les anciennes données qui faussaient « Finis » ont été réglées par l'utilisateur dans Notion le 08/11 (je n'ai pas relu Notion après).

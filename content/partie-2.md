@@ -19,15 +19,19 @@
 | 18 → 20/10 | **Protocoles : exclure, ajouter, ouvrir** | Un protocole peut être lancé sans une application, ou avec une de plus ; « Ouvre <application> » lance une application depuis Telegram (le PC déclare les noms de ses applications, jamais les chemins). PR #26 et #31. |
 | 01 → 02/11 | **La voix : clonage abandonné, enregistrements consentis** | Ouverture de plusieurs applications par message Telegram, outil `get_settings`, aveu d'ignorance (PR #32). Un clonage sans entraînement est jugé « très médiocre » par l'utilisateur et tout est supprimé ; il choisit d'entraîner Piper sur la voix d'un proche qui signe un accord écrit. |
 | 03 → 04/11 | **La voix de Løra : entraînée, branchée, corrigée** | Piper est affiné (582 phrases retenues sur 695, 4 800 époques en environ 6 h), branché dans `Ctrl+K` (Piper d'abord, voix de Windows en repli, gardé en mémoire), un bug d'accents corrigé ; un projet dit terminé l'est dans Notion ; le « demain » du bilan est décalé par le code. PR #33 et #34. |
-| 05/11 | **Renommage, Løra parle, Løra entend** | Løra devient Løra ; toute phrase de `Ctrl+K` part à `api/ask` et la réponse est dite ; reconnaissance locale (Whisper) et mot d'activation « Løra », essayés avec la vraie voix ; retour visuel sur le ruban ; personnalité à l'oral (tutoiement, vraies dates, surnoms permis). PR #35 et #36. |
+| 05/11 | **Renommage, Løra parle, Løra entend** | Soza devient Løra ; toute phrase de `Ctrl+K` part à `api/ask` et la réponse est dite ; reconnaissance locale (Whisper) et mot d'activation « Løra », essayés avec la vraie voix ; retour visuel sur le ruban ; personnalité à l'oral (tutoiement, vraies dates, surnoms permis). PR #35 et #36. |
 | 06/11 | **Widget, commandes de contrôle, modes de travail, Claude Code** | Widget de bureau et nuage de particules synchronisé sur la vraie voix ; « stop », « repose-toi », « fin de mission » ; deux modes de travail à la voix ; lecture de la dernière réponse de Claude Code, dictée, relecture et envoi sur un « oui ». Relecture de tout le code et des commits. PR #37 à #39. |
-| à partir de 30/09 | **V2 cadrée** | Assistant vocal local, protocoles, puis (06/10) gestes de la main : documenté ; au 06/11 : étapes 0 à 10 et 13 faites ou commencées, étapes 11 et 12 pas commencées. Le premier chantier (personnalité unique) a été fait le 07/10, en fin de V1. |
+| 07 → 08/11 | **Une réinstallation efface la voix** | Après la réinstallation du 06/11, les moteurs de voix (1,9 Go posés à la main) et plusieurs réglages ont disparu avec le dossier de données ; les moteurs sont déplacés dans un dossier voisin et le désinstalleur reçoit une confirmation. PR #42. |
+| 08/11 | **Elle parle d'elle-même, dit bonjour, et on abandonne une fonction** | Parole spontanée (rendez-vous, batterie de la souris, pause pour le dos), bonjour au démarrage, agenda léger pour l'application ; « qu'est-ce que je regarde ? » est codée puis abandonnée ; étapes 9, 10 et 13 validées par l'utilisateur ; passe sécurité et dépendances corrigées ; ménage du dépôt. PR #40 à #44. |
+| 09/11 | **Les « broutilles » : six lots et un journal plus riche** | Minuteurs, rappels, temps d'écran, sites, fenêtres, audio par application, verrouillage et extinction avec confirmation, presse-papiers, dictée, musique ; réponses sans modèle (météo, conversions, titres, compte à rebours, présence du PC) ; six outils Notion ; envoi vers Telegram ; résumés et liens dans le briefing du matin et actualités par thème. PR #45 et #46. |
+| 10/11 | **V1 soldée, deux défauts trouvés à l'usage** | La connexion au compte de musique ouvrait le dossier Documents ; « mets en fenêtré » lançait une musique. L'utilisateur déclare la V1 finie et les lots validés : il ne reste que l'étape 12 et deux protocoles reportés. PR #47. |
+| à partir de 30/09 | **V2 cadrée** | Assistant vocal local, protocoles, puis (06/10) gestes de la main : documenté ; au 10/11 : étapes 0 à 7, 9, 10 et 13 faites (les trois dernières validées par l'utilisateur), la 8 avec un seul protocole (deux reportés), la 11 abandonnée, la 12 (gestes de la main) pas commencée. Le premier chantier (personnalité unique) a été fait le 07/10, en fin de V1. |
 
 ---
 
 @@ page vision-v2 | II | B | Vision V2 | Une seule personnalité, un agent local sur la machine, deux canaux d'entrée, un raisonnement qui reste dans le cloud.
 
-<span class="st st-vision">V2</span> Cette annexe décrit la vision ; ce qui est fait se lit dans [Avancement de la V2](#avancement-v2) et [La voix de Løra](#voix). La V1 est terminée ; la V2 a démarré le 12/10/2026 : au 06/11, les étapes 0 à 8 sont faites, la voix (9), le widget (10) et plusieurs lots de commandes vocales (13) sont faits côté code ; « qu'est-ce que je regarde ? » (11) et les gestes de la main (12) ne sont pas commencés.
+<span class="st st-vision">V2</span> Cette annexe décrit la vision ; ce qui est fait se lit dans [Avancement de la V2](#avancement-v2), [La voix de Løra](#voix) et [Les commandes de Løra](#commandes-vocales). La V1 est terminée ; la V2 a démarré le 12/10/2026 : au 10/11, les étapes 0 à 7, 9, 10 et 13 sont faites (les trois dernières validées par l'utilisateur le 08/11), la 8 l'est avec un seul protocole (deux autres reportés), la 11 est abandonnée, la 12 (gestes de la main) n'est pas commencée.
 
 ## Pourquoi cette direction
 
@@ -57,13 +61,13 @@ Elle commence en mode « application ouverte » (le processus Tauri tourne ; une
 
 ---
 
-@@ page avancement-v2 | II | C | Avancement de la V2 | Étapes 0 à 13 entre le 12/10 et le 06/11/2026 : ce qui est fait, vérifié ou non, et la suite.
+@@ page avancement-v2 | II | C | Avancement de la V2 | Étapes 0 à 13 entre le 12/10 et le 10/11/2026 : ce qui est fait, vérifié ou non, et la suite.
 
 La V2 avance en 13 étapes, **du plus simple au plus dur**, une pull request par étape. Source : `docs/ai/STATUS-V2.md` du dépôt, qui fait foi. Chaque étape dit ce qui a été **essayé pour de vrai** et ce qui ne l'a été que dans des tests simulés.
 
 | # | Étape | Statut |
 | --- | --- | --- |
-| 0 | Tests de cadence remis au vert | <span class="st st-ok">Fait</span> |
+| 0 | Tests de cadence remis au vert, liste « non vérifié » de la V1 | <span class="st st-ok">Fait</span> liste soldée le 10/11/2026 d'après l'utilisateur (non rejouée par moi) |
 | 1 | Statut `Terminé`, catégorie Notion, applications inconnues | <span class="st st-ok">Fait</span> |
 | 2 | Pause de plusieurs jours visible dans le dashboard | <span class="st st-ok">Fait</span> |
 | 3 | Cause du lag trouvée, réfraction du verre coupée | <span class="st st-ok">Fait</span> |
@@ -72,10 +76,12 @@ La V2 avance en 13 étapes, **du plus simple au plus dur**, une pull request par
 | 6 | Volume, musique, batterie de la souris | <span class="st st-ok">Fait</span> essayés sur la vraie machine |
 | 7 | Plusieurs projets en parallèle | <span class="st st-ok">Fait</span> confirmé par l'utilisateur |
 | 8 | Moteur de protocoles | <span class="st st-ok">Fait</span> essayé en réel le 05/11/2026 ; deux autres protocoles reportés |
-| 9 | Voix : synthèse, reconnaissance, mot d'activation, ruban réactif | <span class="st st-ok">Fait</span> essayée avec la vraie voix le 05/11/2026 ; <span class="st st-prop">Non vérifié</span> temps d'usage, écoute fenêtre masquée, application installée |
-| 10 | Agent résident et widget de bureau | <span class="st st-ok">Fait</span> côté code et dans un navigateur ; <span class="st st-prop">Non vérifié</span> application réelle |
-| 11 à 12 | « Qu'est-ce que je regarde ? », gestes de la main | <span class="st st-vision">V2</span> |
-| 13 | Élargir les commandes vocales | <span class="st st-ok">Fait</span> premier lot essayé sur le vrai modèle ; <span class="st st-prop">Non vérifié</span> essai réel des lots du 06/11 |
+| 9 | Voix : synthèse, reconnaissance, mot d'activation, ruban réactif | <span class="st st-ok">Fait</span> essayée avec la vraie voix le 05/11/2026 ; validée par l'utilisateur le 08/11/2026 |
+| 10 | Agent résident et widget de bureau | <span class="st st-ok">Fait</span> validé par l'utilisateur le 08/11/2026 |
+| 11 | « Qu'est-ce que je regarde ? » | <span class="st st-repl">Retiré</span> abandonnée le 08/11/2026 |
+| 12 | Gestes de la main | <span class="st st-vision">V2</span> |
+| 13 | Élargir les commandes vocales | <span class="st st-ok">Fait</span> validé par l'utilisateur (08 et 10/11/2026, sur sa parole) ; essayé avant contre des simulations |
+| Extras | Résumés et liens dans le briefing, parole spontanée, bonjour au démarrage | <span class="st st-ok">Fait</span> côté code ; <span class="st st-prop">Non vérifié</span> essai réel non consigné |
 
 ## Étape 4 : ouvrir et fermer une application
 
@@ -131,17 +137,21 @@ La V2 avance en 13 étapes, **du plus simple au plus dur**, une pull request par
 
 Voir le bug [16](#bugs). Résumé : fin des relances automatiques, échec à 20 s, message sur Telegram ; puis allègement des appels (second appel sans outils −31 %, repli sur un second modèle, descriptions raccourcies, outils choisis par mots-clés). Quota mesuré : trois modèles de chat à 8 000 jetons par minute chacun, compteurs séparés. **Défaut trouvé le 19/10, non corrigé à cette date** : « je ne bosse pas ce week-end » donnait des dates fausses (3 essais sur 3), le modèle calculant mal les jours à partir de la date du jour ; piste : injecter dans la consigne les dates de demain et des prochains samedi et dimanche. <span class="st st-prop">Non vérifié</span> Un vrai repli de modèle sur un vrai refus.
 
-## Étape 9 : la voix (18/10 → 06/11)
+## Étape 9 : la voix (18/10 → 08/11)
 
-Découpée en lots, dans l'ordre choisi par l'utilisateur. Le détail (essais de voix, entraînement, reconnaissance, mot d'activation, commandes de contrôle, retour visuel) est dans [La voix de Løra](#voix). État : voix de sortie faite et branchée ; reconnaissance et mot d'activation faits et essayés avec la vraie voix le 05/11 (« le point est bon ») ; restent du temps d'usage (faux déclenchements, télévision, musique), l'écoute fenêtre masquée et l'application installée.
+Découpée en lots, dans l'ordre choisi par l'utilisateur, puis **validée par l'utilisateur le 08/11/2026** (sur sa parole : je n'ai rien rejoué). Le détail (essais de voix, entraînement, reconnaissance, mot d'activation, commandes de contrôle, retour visuel, parole spontanée) est dans [La voix de Løra](#voix). Au moment de la validation : voix de sortie faite et branchée ; reconnaissance et mot d'activation essayés avec la vraie voix le 05/11 (« le point est bon »). Les points « non vérifié » de l'étape (faux déclenchements sur la durée, télévision, musique, écoute fenêtre masquée, application installée) ne sont pas consignés comme remesurés.
 
-## Étape 10 : widget de bureau (06/11)
+## Étape 10 : widget de bureau (06/11, validée le 08/11)
 
-Une seconde fenêtre transparente de 320 px en bas à droite, avec le seul ruban, visible seulement quand Løra écoute ou parle, sans focus, clics traversants. Essayée dans un navigateur (noyau Tauri simulé), pas dans l'application réelle : la transparence de WebView2, la position, l'absence de vol de focus et le comportement avec un jeu en plein écran restent à voir. L'agent résident existait déjà (zone de notification, démarrage avec Windows).
+Une seconde fenêtre transparente de 320 px en bas à droite, avec le seul ruban, visible seulement quand Løra écoute ou parle, sans focus, clics traversants. Essayée dans un navigateur (noyau Tauri simulé), puis **validée par l'utilisateur le 08/11/2026**. Les points restés « pas essayé » avant sa validation (transparence de WebView2, absence de vol de focus, jeu en plein écran, effet sur le démarrage, particules blanches peu visibles sur fond clair) n'ont pas été remesurés par moi. L'agent résident existait déjà (zone de notification, démarrage avec Windows).
 
-## Étape 13 : élargir les commandes vocales (05 → 06/11)
+## Étape 13 : élargir les commandes vocales (05 → 10/11)
 
-Premier lot (05/11) : toute phrase de `Ctrl+K` ou du micro qui n'est pas une commande locale part à `api/ask` et la réponse est dite : briefing, agenda, idées, météo, bilan, recherche, calcul, avis sur un projet. Un hook « Claude Code a terminé » la fait aussi parler d'elle-même. Essai réel le 05/11 (vrai modèle, vrai Notion, vrai Redis, lecture seule). **Défauts trouvés à l'essai et corrigés** : « C'est fait. » collé aux réponses d'information, code météo lu à voix haute, mauvais jour de la semaine, tu et vous mélangés, fausses dates (« aujourd'hui » pour un événement lointain). Lots du 06/11 : commandes de contrôle, modes de travail, Claude Code (voir [La voix de Løra](#voix)). **Limites** : pas d'outil de calcul (le modèle compte, un calcul long peut être faux) ; le hook se déclenche à chaque fin de réponse de Claude Code, pas seulement pour une longue tâche.
+**Premier lot (05/11)** : toute phrase de `Ctrl+K` ou du micro qui n'est pas une commande locale part à `api/ask` et la réponse est dite : briefing, agenda, idées, météo, bilan, recherche, calcul, avis sur un projet. Un hook « Claude Code a terminé » la fait aussi parler d'elle-même. Essai réel le 05/11 (vrai modèle, vrai Notion, vrai Redis, lecture seule). **Défauts trouvés à l'essai et corrigés** : « C'est fait. » collé aux réponses d'information, code météo lu à voix haute, mauvais jour de la semaine, tu et vous mélangés, fausses dates (« aujourd'hui » pour un événement lointain). **Lots du 06/11** : commandes de contrôle, modes de travail, Claude Code (voir [La voix de Løra](#voix)).
+
+**Six lots du 09/11 : les « broutilles »**, une liste proposée le 08/11 (« toutes les idées sont bonnes à prendre ») dont l'utilisateur a retenu tout sauf trois (une session de travail, l'état de la machine, des modes de plus), livrée **par lots, une pull request chacun** : (1) minuteurs, rappels, heure, date, temps d'écran, sites et dossiers, fenêtres ; (2) volume par application, sortie audio, micro, verrouillage / veille / extinction / corbeille avec confirmation, presse-papiers, dictée ; (3) musique : titre en cours, like, aléatoire, playlist ; (4) internet sans modèle : météo, conversions, titres, compte à rebours, traduction ; (5) six outils Notion ; (6) Telegram et PC : « mon PC est-il allumé ? » et « envoie-moi ça sur Telegram ». Décisions : rappels dits par la voix du PC seulement ; **aucun ordre ne descend vers le PC**. Le catalogue, les garde-fous et les limites sont dans [Les commandes de Løra](#commandes-vocales).
+
+**Validation** : l'utilisateur a validé l'étape le 08/11 puis les lots du 09/11 le 10/11 (« tout est bon, il ne reste que l'étape 12 et 8 »), sur sa parole. Deux défauts trouvés à l'usage ce jour-là ont été corrigés (bugs [22](#bugs) et [23](#bugs)). **Limites générales** : pas d'outil de calcul (le modèle compte, un calcul long peut être faux) ; ce que Løra dit peut être entendu par l'entourage ; le hook se déclenche à chaque fin de réponse de Claude Code, pas seulement pour une longue tâche.
 
 ## Renommage Soza → Løra (05/11)
 
@@ -151,26 +161,44 @@ Voir [En bref](#en-bref). Renommés : les textes, la personnalité, les messages
 
 Relus : les modules neufs (commandes de contrôle, Claude Code, modes, analyse du son, forme de la voix, widget) et les commits de la branche de la reconnaissance vocale. Un défaut trouvé et corrigé (bug [20](#bugs)) ; rien d'autre : les accès à des tranches de l'analyse du son sont bornés (un WAV illisible laisse la page garder son son simulé), les modes n'ouvrent que des applications de la liste blanche et des adresses `http(s)` passées en arguments, la frappe dans l'éditeur n'envoie jamais Entrée sans un « oui ». **Limites** : faite sur le code et les tests, rien essayé dans l'application réelle. Un point de conception à garder en tête : après le mot d'activation, « je suis en mode créatif ce soir » lancerait aussi le mode.
 
+## Étape 11 : abandonnée (08/11)
+
+Décision de l'utilisateur : la fonction est inutile et son coût en jetons n'est pas rentable. Le code (capture d'écran, commande Tauri, champ image de `api/ask`, deux dépendances, tests) a été retiré ; il n'existe plus que dans l'historique git. **Ce que l'essai a appris**, au cas où l'idée reviendrait (deux appels réels, environ 2,5 k jetons chacun) : le seul modèle de vision du compte ne lisait pas un écran entier et **inventait le contenu** (à 1 280 px comme en résolution native) ; une consigne durcie lui a fait avouer ne pas lire le détail, mais après avoir inventé ; explication probable, non vérifiée : l'image est comptée 2 048 jetons quelle que soit sa taille, donc le modèle la réduit ; piste jamais essayée : capturer la fenêtre active seule. *Leçon : une capacité qu'un modèle simule sans pouvoir la tenir est pire qu'une capacité absente.*
+
+## Extras 1 et 2 (08 → 09/11)
+
+Les Extras viennent normalement après l'étape 12 ; l'utilisateur a demandé l'Extra 2 avant (signalé comme possible surdev, il a tranché). **Extra 1** : résumés et liens dans le briefing du matin, et outil `get_news` à la demande (voir [Briefings et pause](#briefings-pause)). **Extra 2** : Løra prend la parole d'elle-même, et dit bonjour au démarrage (voir [La voix de Løra](#voix)). <span class="st st-prop">Non vérifié</span> Ni l'un ni l'autre n'est consigné comme essayé en réel ; l'agenda léger de l'Extra 2 est déjà déployé (vu répondre en production le 08/11).
+
+## Passe sécurité et vérifications en lecture seule (08/11)
+
+Passe sécurité sur le code réel : rien de bloquant, cinq points à connaître et deux alertes de dépendances corrigées (voir [Sécurité](#securite)). Vérifications en production : `/api/dashboard` répond avec tous ses champs (jalons, idées, articles, `pause: null`) et refuse sans clé ; de vrais briefings du matin et du soir ont été lus dans Redis ; le « demain » du bilan est bien décalé. Poser une pause pour la voir rendue n'a pas été fait par moi (l'écriture dans le Redis de production a été refusée par le garde-fou de la session et je ne l'ai pas contournée) ; l'utilisateur a ensuite compté la pause posée par conversation parmi les points soldés.
+
+## Ménage (08/11)
+
+L'arbre de travail local était en retard sur `main` : chaque modification non commitée a été comparée fichier par fichier à `origin/main` (identiques) puis sauvegardée avant d'être écartée ; 39 branches locales déjà fusionnées supprimées ; 19 Go de fichiers de compilation supprimés ; un ancien désinstalleur orphelin supprimé sans être lancé. **Pas fait** : les branches distantes déjà fusionnées sont toujours sur GitHub (suppression refusée par le garde-fou de la session).
+
 ## Ce qui reste ouvert
 
-Le démarrage automatique réel et le menu de la zone de notification dans l'application installée ; la passe sécurité sur le code réel ; les textes réels des briefings avec le code actuel ; **l'essai réel des lots du 06/11** (commandes de contrôle, modes de travail, Claude Code, widget, ruban synchronisé sur la voix) ; l'écoute fenêtre masquée et dans l'application installée (qui ne contient pas encore ce code : recompiler et réinstaller) ; la connexion et le tirage contre le vrai service de musique (ses restrictions d'API en 2026 ne sont pas contrôlées) ; la définition des deux autres protocoles ; puis les étapes 11 et 12 et deux « extras » de confort documentés (des articles plus développés dans le briefing du matin ; Løra qui prend la parole d'elle-même selon les événements de l'ordinateur).
+Au 10/11/2026, d'après l'utilisateur, il ne reste que **l'étape 12 (gestes de la main)** et **l'étape 8 (deux protocoles reportés)**. Tout ce qui est marqué validé l'est sur sa parole : je n'ai rien rejoué. Restent non consignés comme vérifiés : l'installeur reconstruit (un nom avec « ø » dans NSIS, la confirmation de désinstallation), les Extras en réel, les restrictions d'API du service de musique pour les applications en développement en 2026, la bascule F11 qui ne connaît pas l'état de la fenêtre, et le nettoyage des branches distantes.
 
 ---
 
 @@ page voix | II | D | La voix de Løra | Voix de sortie entraînée sur des enregistrements consentis, reconnaissance locale, mot d'activation, commandes de contrôle, retour visuel, modes de travail et Claude Code.
 
-Cette page rassemble ce qui concerne la parole, du 18/10 au 06/11/2026. Source : `docs/ai/STATUS-V2.md`, étapes 9, 10 et 13. Même règle que le reste du wiki : ce qui a été **essayé pour de vrai** est séparé de ce qui ne l'a été qu'en tests. **Le son lui-même n'a jamais été écouté côté développement** : seul l'utilisateur juge la voix.
+Cette page rassemble ce qui concerne la parole, du 18/10 au 08/11/2026. Source : `docs/ai/STATUS-V2.md`, étapes 9, 10 et 13. Même règle que le reste du wiki : ce qui a été **essayé pour de vrai** est séparé de ce qui ne l'a été qu'en tests. **Le son lui-même n'a jamais été écouté côté développement** : seul l'utilisateur juge la voix. Les étapes 9, 10 et 13 ont été **validées par l'utilisateur le 08/11/2026**, sur sa parole.
 
 ## Vue d'ensemble
 
 | Brique | Ce qu'elle fait | Statut |
 | --- | --- | --- |
-| Voix de sortie (Piper, repli sur la voix de Windows) | Dit les réponses de `Ctrl+K`, du micro et du hook « Claude Code a terminé » | <span class="st st-ok">Fait</span> accents jugés satisfaisants par l'utilisateur ; <span class="st st-prop">Non vérifié</span> accent anglais des noms d'applications, volume dans l'application |
-| Reconnaissance locale (Whisper) et mot d'activation « Løra » | Transforme une phrase qui commence par « Løra » en demande, traitée comme une phrase tapée | <span class="st st-ok">Fait</span> essayée avec la vraie voix le 05/11/2026 ; <span class="st st-prop">Non vérifié</span> précision sur la durée, faux déclenchements, fenêtre masquée, application installée |
-| Commandes de contrôle | « stop », « repose-toi », « fin de mission » | <span class="st st-ok">Fait</span> côté code ; <span class="st st-prop">Non vérifié</span> essai réel |
-| Retour visuel et widget | Le ruban réagit à l'état et à la vraie voix ; une fenêtre transparente apparaît en bas à droite | <span class="st st-ok">Fait</span> côté code et dans un navigateur ; <span class="st st-prop">Non vérifié</span> application réelle |
-| Modes de travail | Une phrase lance un ensemble d'applications et de pages | <span class="st st-ok">Fait</span> côté code et simulations ; <span class="st st-prop">Non vérifié</span> essai réel |
-| Claude Code | Lire la dernière réponse, dicter une suite, la relire, l'envoyer sur un « oui » | <span class="st st-ok">Fait</span> côté code ; <span class="st st-prop">Non vérifié</span> essai réel |
+| Voix de sortie (Piper, repli sur la voix de Windows) | Dit les réponses de `Ctrl+K`, du micro et du hook « Claude Code a terminé » | <span class="st st-ok">Fait</span> accents jugés satisfaisants ; validée le 08/11/2026 ; <span class="st st-prop">Non vérifié</span> accent anglais des noms d'applications, volume dans l'application |
+| Reconnaissance locale (Whisper) et mot d'activation « Løra » | Transforme une phrase qui commence par « Løra » en demande, traitée comme une phrase tapée | <span class="st st-ok">Fait</span> essayée avec la vraie voix le 05/11/2026, validée le 08/11/2026 |
+| Commandes de contrôle | « stop », « repose-toi », « fin de mission » | <span class="st st-ok">Fait</span> validées le 08/11/2026 |
+| Retour visuel et widget | Le ruban réagit à l'état et à la vraie voix ; une fenêtre transparente apparaît en bas à droite | <span class="st st-ok">Fait</span> validés le 08/11/2026 |
+| Modes de travail | Une phrase lance un ensemble d'applications et de pages | <span class="st st-ok">Fait</span> validés le 08/11/2026 (essayés avant seulement avec des simulations) |
+| Claude Code | Lire la dernière réponse, dicter une suite, la relire, l'envoyer sur un « oui » | <span class="st st-ok">Fait</span> validé le 08/11/2026 (essayé avant seulement avec de fausses frappes) |
+| Parole spontanée et bonjour | Une phrase fixe pour un rendez-vous, la batterie de la souris, une pause pour le dos ; un bonjour au démarrage | <span class="st st-ok">Fait</span> côté code ; <span class="st st-prop">Non vérifié</span> essai réel non consigné |
+| Petites commandes locales | Minuteurs, volume par application, dictée, etc. | voir [Les commandes de Løra](#commandes-vocales) |
 
 ## La voix de sortie
 
@@ -238,21 +266,76 @@ Après « Claude Code a terminé », l'utilisateur veut se faire lire la répons
 - <span class="st st-prop">Non vérifié</span> Tout ce qui touche au vrai Windows et à la vraie voix : le premier plan de la fenêtre, la frappe dans la bonne zone de saisie, la façon dont Whisper écrit « Claude » et « Écris », les hooks joués par Claude Code lui-même. L'essai réel de frappe n'a pas été lancé : il aurait écrit dans la session de l'utilisateur.
 - **Limites** : une dictée coupée par un silence de plus de 1,2 s devient deux phrases et la seconde est ignorée ; le fichier est écrasé par chaque fin de réponse de n'importe quel projet ; une fenêtre lancée en administrateur bloque la frappe.
 
+## Elle parle d'elle-même et dit bonjour (08/11)
+
+Demandée par l'utilisateur le 08/11, avant la fin des étapes prévues (signalé comme possible surdev, il a tranché). Un seul thread regarde toutes les 15 secondes ; **une phrase au plus par tour, des phrases fixes, aucun appel au modèle** : les faits (heure, pourcentage, titre) viennent du code.
+
+- **Quatre types d'événements** : un rendez-vous qui approche (« Dans 10 minutes : … »), la batterie de la souris sous 20 % (une alerte par décharge, réarmée quand elle recharge), une pause pour le dos après une heure d'activité continue (3 minutes sans clavier ni souris remettent le compteur à zéro), et une remarque d'ambiance (environ une fois par heure, tard le soir, ou le temps passé sur l'application la plus utilisée).
+- **Garde-fous** : une case « Løra parle d'elle-même » dans le menu de la zone de notification (« repose-toi » la décoche) ; la pause de plusieurs jours du backend la fait taire ; silence en plein écran ou en présentation ; silence tant qu'elle parle ; rien quand l'utilisateur est parti (5 minutes), sauf un rendez-vous ; **plafond de 3 phrases par heure** (un rendez-vous passe toujours) ; un interrupteur par type de phrase.
+- **Vie privée** : tout se décide en local ; seul l'agenda vient du backend (une lecture légère de `/api/dashboard?only=agenda` toutes les 5 minutes, sans les articles) ; les titres de fenêtres ne sont pas lus, seul le nom de l'exécutable du suivi existant sert.
+- **Pour essayer sans qu'elle parle** : une option écrit les phrases dans un journal au lieu de les dire (l'ordre de test voulu : afficher avant de dire).
+- **Bonjour au démarrage** : une fois par demi-journée, dès qu'une touche est pressée ou que la fenêtre est affichée (8 secondes après le démarrage), elle dit « Bonjour » suivi d'un surnom, le briefing court du dashboard et un titre d'actualité tiré au sort (à partir de 15 h : le briefing du soir). Aucun appel au modèle : le texte est lu dans le dashboard. Réseau absent : quatre essais puis « Bonjour » seul. On regarde seulement si une touche est enfoncée, rien n'est enregistré.
+- <span class="st st-prop">Non vérifié</span> Rien n'est consigné comme essayé dans l'application compilée : le son des phrases, le plein écran réel, la case du menu, la batterie à 20 %, la détection réelle d'une touche. **Limites** : les réunions ne sont pas détectées (Windows n'expose pas cet état) ; un rendez-vous sans heure n'est pas annoncé ; un rendez-vous ajouté moins de 5 minutes avant son début peut être manqué ; le briefing court, écrit par le modèle, peut lui-même commencer par « Bonjour ». Événements non faits : réseau coupé, périphérique branché, mise à jour de Windows, disque plein, fin de téléchargement.
+
+## Installation, réinstallation et ce qui s'efface (08/11)
+
+Après la réinstallation du 06/11, la reconnaissance et la synthèse (1,9 Go posés à la main) avaient disparu, ainsi que la liste des applications et les réglages de la musique, des modes, de l'écoute et de la voix. **Cause, déduite des dates** (la désinstallation n'a pas été vue) : la case « supprimer les données de l'application » du désinstalleur de Tauri efface deux dossiers, recréés ici dans la même seconde au premier lancement. **Parade** : les moteurs de voix vivent maintenant dans un **dossier voisin** que cette case ne touche pas ; une confirmation s'ajoute à la désinstallation (« non » par défaut, « non » aussi en mode silencieux). <span class="st st-prop">Non vérifié</span> Aucune vraie désinstallation n'a été essayée et l'installeur n'est pas reconstruit : le désinstalleur actuellement installé n'a pas ce crochet. Voir [L'application de bureau](#application-bureau) et le bug [21](#bugs).
+
 ## Ce qui reste
 
-Du temps d'usage et l'essai réel de tout ce qui est marqué non vérifié ; recompiler et réinstaller l'application (l'installée ne contient pas la voix) ; un raccourci à maintenir si le mot d'activation déçoit ; une voix pour l'accent anglais des titres de morceaux et d'artistes ; puis « qu'est-ce que je regarde ? » et les gestes de la main.
+Du temps d'usage et l'essai réel de ce qui est marqué non vérifié ; reconstruire et réinstaller l'application (l'installée ne contient pas tout ce code) ; un raccourci à maintenir si le mot d'activation déçoit ; une voix pour l'accent anglais des titres de morceaux et d'artistes ; puis les gestes de la main. « Qu'est-ce que je regarde ? » est abandonnée.
 
 ---
 
-@@ page chantiers-v2 | II | E | Les chantiers de la V2 | Les neuf chantiers cadrés, leur statut et leurs décisions déjà prises.
+@@ page commandes-vocales | II | E | Les commandes de Løra | Ce que Løra sait faire à la voix ou dans la barre Ctrl+K, par famille, et ce que chacune coûte en jetons.
+
+Tout passe par la même entrée : une phrase tapée dans `Ctrl+K` ou dite après « Løra ». Le principe est **le moins cher d'abord** : le code essaie d'abord les commandes locales (rien ne quitte le PC, zéro jeton), puis les réponses directes (fabriquées par le code), et n'envoie au modèle que ce qui reste. **L'ordre des reconnaissances est une décision de conception** : par exemple, « rappelle-moi de faire une pause » ne doit pas devenir la commande « pause », et « mets la page en plein écran » ne doit pas lancer une musique (bug [23](#bugs)). Source : `docs/ai/STATUS-V2.md`, étape 13 (lots du 05 au 10/11/2026).
+
+## Du moins cher au plus cher
+
+| Famille | Exemples | Où ça tourne | Jetons |
+| --- | --- | --- | --- |
+| Commandes locales | ouvrir ou fermer une application, volume, musique, batterie de la souris, minuteurs et rappels, heure et date, temps d'écran, sites et dossiers, fenêtres, volume par application, sortie audio, micro, presse-papiers, dictée, titre en cours, like, aléatoire, playlist | le PC | 0 |
+| Actions avec confirmation | verrouiller, mettre en veille, éteindre, vider la corbeille | le PC | 0 |
+| Contrôle de Løra | « stop », « repose-toi », « fin de mission » | le PC | 0 |
+| Modes de travail, Claude Code | « mode créatif », « mode dev » ; lire, dicter, relire, envoyer | le PC | 0 |
+| Envoi et présence | « envoie-moi ça sur Telegram » ; « mon PC est-il allumé ? » | le PC et le backend, sans modèle | 0 |
+| Réponses directes | météo de demain ou de la semaine, conversions d'unités, de devises et de cryptomonnaies, titres du jour, compte à rebours | le backend, sans modèle | 0 |
+| Un petit appel | traduction, définitions | le backend, modèle léger sans outils | environ 1 000 (estimé) |
+| Le modèle avec outils | lectures et écritures Notion, briefings, avis sur un projet, recherche web | le backend et Groq | 3 700 et plus ; 19 000 à 41 000 avec la recherche |
+
+## Les lots du 09/11
+
+Une liste de « broutilles » proposée le 08/11, dont l'utilisateur a retenu tout sauf trois idées (une session de travail, l'état de la machine, des modes de plus). Livrée en six lots, une pull request chacun. Décisions : rappels dits par la voix du PC seulement ; pour Telegram et le PC, seulement la présence et « envoie-moi ça » (aucun ordre ne descend vers le PC).
+
+- **Lot 1 : minuteurs, bureau.** « Minuteur de 20 minutes », « rappelle-moi à 18 h de… » (gardés dans un fichier, ils survivent à un redémarrage ; un rappel échu pendant que Løra était éteinte est dit au démarrage comme « manqué »), l'heure et la date (seulement si la phrase ne contient que la question), le temps d'écran à la voix (lu dans le fichier local de suivi, aujourd'hui ou hier), des sites et dossiers d'une liste blanche, « montre le bureau », « mets-la à gauche », « plein écran ». Limites : nombres en chiffres seulement ; « annule » efface tous les minuteurs.
+- **Lot 2 : audio et PC.** Volume par application (par les sessions audio de Windows), changement de sortie audio par l'interface non documentée du panneau de son (le nom doit désigner une seule sortie : si plusieurs s'appellent « casque », Løra liste les candidates au lieu d'en choisir une), « coupe le micro » (qui coupe aussi son écoute), verrouiller, veille, extinction (30 secondes de délai, annulable) et corbeille avec confirmation, presse-papiers lu à voix haute (texte seulement, 300 caractères), dictée dans la fenêtre au premier plan (jamais d'Entrée).
+- **Lot 3 : musique.** « Quel est ce titre ? » (lu dans Windows, sans réseau ni jeton, y compris pour une vidéo dans le navigateur), « aime ce titre », aléatoire, « joue la playlist … » (parmi les playlists du compte). Les droits demandés au compte de musique sont étendus : une reconnexion est nécessaire.
+- **Lot 4 : internet sans modèle.** Voir [Le cœur IA](#coeur-ia) : météo, conversions, titres, compte à rebours, traduction par un petit appel.
+- **Lot 5 : Notion.** Six outils (décaler ou supprimer un rendez-vous, valider un jalon, note rapide, bilans de la semaine, « que devrais-je faire maintenant ? »), avec confirmation vocale avant toute écriture et un garde-fou commun : plusieurs entrées qui collent, ou aucune, ne modifient rien. Voir [Les outils IA](#outils-ia).
+- **Lot 6 : Telegram et PC.** « Mon PC est-il allumé ? » (le PC signale sa présence au backend toutes les 2 minutes, la réponse dit depuis quand), « envoie-moi ça sur Telegram » (le texte copié, coupé à 3 500 caractères, posté dans le seul chat autorisé). Voir [Sécurité](#securite).
+
+## Statut
+
+<span class="st st-ok">Fait</span> Validé par l'utilisateur le 10/11/2026 (« tout est bon, il ne reste que l'étape 12 et 8 »), **sur sa parole : je n'ai rien rejoué**. Avant sa validation, les lots n'avaient été essayés que contre des simulations : faux Spotify local, faux client Notion, faux serveurs HTTP, réponses simulées des APIs de météo et de taux, et des essais en lecture seule sur la vraie machine (sessions audio, sorties, appel de l'interface de changement de sortie sur la sortie déjà active). Deux défauts trouvés à l'usage ont été corrigés le 10/11 (bugs [22](#bugs) et [23](#bugs)).
+
+<span class="st st-prop">Non vérifié</span> Ce que je ne peux pas confirmer : un vrai changement de sortie audio, la veille, l'extinction, la corbeille, le verrouillage, la dictée réelle, le micro coupé (non essayé : il aurait coupé l'écoute), les APIs réelles de taux de change et de cryptomonnaies, les restrictions d'API du compte de musique pour les applications en développement en 2026, et que le backend de ces lots ait été redéployé (sans lui, la présence et l'envoi vers Telegram répondent en erreur).
+
+## Limites connues
+
+Nombres en chiffres seulement (« vingt minutes » n'est pas compris) ; pas de liste des rappels en attente ; le volume par application agit sur la sortie par défaut seulement ; pas de délai personnalisé pour l'extinction ; les entrées de type Shift sont exclues des outils Notion et seules les 30 prochaines entrées sont cherchées ; F11 bascule sans connaître l'état de la fenêtre ; une personne qui dit « mets » suivi d'un titre contenant « son » ou « volume » peut déclencher la commande de volume ; le texte envoyé vers Telegram est du texte seulement (ni image ni fichier).
+
+---
+
+@@ page chantiers-v2 | II | F | Les chantiers de la V2 | Les neuf chantiers cadrés, leur statut et leurs décisions déjà prises.
 
 | # | Chantier | Statut |
 | --- | --- | --- |
 | 1 | Une seule personnalité, retrait du mode ACTIF/PAUSE | <span class="st st-ok">Fait</span> le 07/10/2026 |
 | 2 | Système de protocoles | Un protocole fait le 17/10/2026 et essayé en réel par l'utilisateur le 05/11/2026 (fonctionne) ; deux autres reportés (une ressource manque) |
-| 3 | Fonctionnalités vocales | Applications, recherche, musique, volume, batterie, voix de sortie, reconnaissance locale et mot d'activation faits (essayés avec la vraie voix le 05/11/2026) ; « qu'est-ce que je regarde ? » : <span class="st st-vision">V2</span> |
+| 3 | Fonctionnalités vocales | Applications, recherche, musique, volume, batterie, voix de sortie, reconnaissance locale, mot d'activation, près de vingt « broutilles » et réponses sans modèle faits (validés par l'utilisateur, 08 et 10/11/2026) ; « qu'est-ce que je regarde ? » abandonnée |
 | 4 | Pauses de plusieurs jours | <span class="st st-ok">Fait</span> en version minimale le 06/10/2026, affichée dans le dashboard le 12/10/2026 |
-| 5 | Widget de bureau, application fermée | Widget fait côté code le 06/11/2026 (<span class="st st-prop">Non vérifié</span> dans l'application réelle) ; l'écoute fenêtre masquée est à vérifier |
+| 5 | Widget de bureau, application fermée | Widget fait et validé par l'utilisateur le 08/11/2026 ; l'écoute fenêtre masquée existe (l'application tournait en démarrage automatique avec le serveur de reconnaissance lancé) |
 | 6 | Optimisation du code et du dossier | Trois passes mesurées faites (la dernière le 12/10/2026), le reste laissé volontairement |
 | 7 | Plusieurs projets « En cours » en même temps | <span class="st st-ok">Fait</span> le 15/10/2026 |
 | 8 | Documentation pour le portfolio | En cours (ce wiki en fait partie) |
@@ -270,7 +353,7 @@ Un protocole est une **séquence nommée d'actions** (lancer une application, en
 ## 3. Fonctionnalités vocales
 
 - **Mot d'activation** : « Løra ». Le moteur prévu à l'origine était **openWakeWord** (open source, local, entraînement par génération synthétique). **Décision du 05/11/2026 : il n'est pas utilisé** ; le nom est cherché dans la transcription de Whisper local (parmi les trois premiers mots de la phrase), comme l'utilisateur l'a demandé, contre la recommandation d'un raccourci à maintenir. Voir [La voix de Løra](#voix).
-- **Ordre de test**, du plus simple au plus dur : 1) lancer et fermer une application nommée ; 2) recherche rapide parlée ; 3) « qu'est-ce que je suis en train de regarder ? » (captures d'écran répétées et modèle avec vision : le plus lourd et le plus sensible côté vie privée, donc en dernier).
+- **Ordre de test**, du plus simple au plus dur : 1) lancer et fermer une application nommée ; 2) recherche rapide parlée ; 3) « qu'est-ce que je suis en train de regarder ? » : **abandonnée le 08/11/2026** (inutile, coût en jetons non rentable ; le modèle de vision inventait le contenu de l'écran).
 - Musique, volume, batterie d'un périphérique : trois intégrations isolées au niveau système ; la batterie d'une souris dépend entièrement du fabricant.
 
 ## 4. Pauses de plusieurs jours
@@ -279,7 +362,7 @@ Faite en version minimale (voir [Briefings et pause](#briefings-pause)). **Affic
 
 ## 5. Widget en barre des tâches, application fermée
 
-Fondations faites en V1 (thread Rust résident, icône de zone de notification, démarrage avec Windows, installeur). Le widget animé est fait côté code depuis le 06/11/2026. Reste à vérifier : l'écoute avec la fenêtre masquée, et le widget dans l'application réelle (voir [La voix de Løra](#voix)).
+Fondations faites en V1 (thread Rust résident, icône de zone de notification, démarrage avec Windows, installeur). Le widget animé est fait et validé par l'utilisateur (08/11/2026). L'écoute tourne dans le processus de l'application, y compris lancée avec Windows fenêtre masquée (voir [La voix de Løra](#voix)).
 
 ## 6. Optimisation
 
@@ -301,7 +384,7 @@ Surdev assumé par l'utilisateur : un défi personnel pour construire l'agent qu
 
 ---
 
-@@ page commandes | II | F | Commandes et variables | Les commandes npm, les scripts de configuration et les variables d'environnement.
+@@ page commandes | II | G | Commandes et variables | Les commandes npm, les scripts de configuration et les variables d'environnement.
 
 ## Développement et build
 
@@ -353,8 +436,11 @@ Dans le dossier de données de l'application (`%APPDATA%\com.soza.assistant\`, l
 | `claude.json` | Option de focus de la session Claude Code |
 | `say.txt`, `claude-last.json` | Boîtes aux lettres écrites par les hooks de Claude Code |
 | `usage.json` | Le temps d'écran |
+| `reminders.json` | Les minuteurs et rappels en attente (ils survivent à un redémarrage) |
+| `shortcuts.json` | Les noms de sites et de dossiers que Løra peut ouvrir (adresses `http(s)` ou dossiers existants) |
+| `ambient.json`, `greeting.json` | Réglages de la parole spontanée (seuils, interrupteurs, option « ne pas dire » qui écrit dans un journal) ; le dernier bonjour dit (le supprimer pour le réentendre) |
 
-La voix et l'écoute demandent des fichiers installés à la main dans le sous-dossier `voice` (Piper et son modèle, le serveur Whisper et son modèle : environ 1,9 Go) ; voir [La voix de Løra](#voix).
+La voix et l'écoute demandent des fichiers installés à la main (Piper et son modèle, le serveur Whisper et son modèle : environ 1,9 Go), depuis le 08/11/2026 dans un **dossier voisin** du dossier de données, que la désinstallation n'efface pas ; voir [La voix de Løra](#voix).
 
 ## Routes de l'application
 
@@ -371,7 +457,7 @@ Voir le tableau du chapitre [Déploiement et planification](#deploiement).
 
 ---
 
-@@ page glossaire | II | G | Glossaire | Les termes techniques utilisés dans ce wiki.
+@@ page glossaire | II | H | Glossaire | Les termes techniques utilisés dans ce wiki.
 
 | Terme | Définition |
 | --- | --- |
@@ -393,6 +479,9 @@ Voir le tableau du chapitre [Déploiement et planification](#deploiement).
 | **WebView2** | Moteur web de Windows (basé sur Chromium) qui affiche l'interface de l'application. |
 | **Zod** | Bibliothèque de validation de schémas ; ici limitée aux outils de l'IA. |
 | **Hook** | Commande déclenchée par un événement d'un outil ; ici, la fin d'une réponse de Claude Code. |
+| **Broutille** | Petite fonction vocale utile au quotidien (minuteur, volume d'une application, titre en cours…), livrée par lots. |
+| **Présence** | Le signe de vie que le PC envoie au backend, pour répondre « mon PC est-il allumé ? ». |
+| **Réponse directe** | Réponse fabriquée par le code, sans appeler le modèle : zéro jeton. |
 | **Liste blanche** | Liste de ce qui est autorisé et rien d'autre : ici, les applications que Løra peut ouvrir ou fermer. |
 | **Mode de travail** | Ensemble d'applications et de pages lancé par une phrase (« mode créatif », « mode dev »). |
 | **Mot d'activation** | Le mot qui ouvre une demande vocale : « Løra ». |
@@ -408,7 +497,7 @@ Voir le tableau du chapitre [Déploiement et planification](#deploiement).
 
 ---
 
-@@ page sources | II | H | Sources | Les documents du dépôt Løra et les services utilisés.
+@@ page sources | II | I | Sources | Les documents du dépôt Løra et les services utilisés.
 
 Ce wiki est consolidé à partir du dépôt Løra (le dépôt GitHub et les dossiers gardent le nom Soza) et de son historique. En cas de conflit, le dépôt fait foi.
 
@@ -428,7 +517,7 @@ Ce wiki est consolidé à partir du dépôt Løra (le dépôt GitHub et les doss
 
 ## Services et bibliothèques
 
-Groq (modèle de langage), Vercel (hébergement et AI SDK), Upstash (QStash et Redis), Notion (API), Telegram (Bot API), Open-Meteo (météo), flux RSS (TechCrunch, Vogue), Piper (synthèse vocale locale), whisper.cpp (reconnaissance vocale locale), l'API web d'un service de musique, Tauri 2, React, Vite, three.js, Zod, Vitest, Playwright. Le rendu Markdown de ce wiki utilise `marked` (licence MIT). Le jeu de données de départ de la voix (SIWIS) est sous licence CC-BY 4.0 : une attribution sera à prévoir si la voix est un jour distribuée.
+Groq (modèle de langage), Vercel (hébergement et AI SDK), Upstash (QStash et Redis), Notion (API), Telegram (Bot API), Open-Meteo (météo), flux RSS (TechCrunch, Vogue), Piper (synthèse vocale locale), whisper.cpp (reconnaissance vocale locale), l'API web d'un service de musique, Frankfurter (taux de change) et CoinGecko (cryptomonnaies), des flux d'actualités français et anglais, Tauri 2, React, Vite, three.js, Zod, Vitest, Playwright. Le rendu Markdown de ce wiki utilise `marked` (licence MIT). Le jeu de données de départ de la voix (SIWIS) est sous licence CC-BY 4.0 : une attribution sera à prévoir si la voix est un jour distribuée.
 
 ## Ce que ce wiki ne contient pas
 

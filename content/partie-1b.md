@@ -46,7 +46,7 @@ Un correctif commité sur une branche de travail ne change rien en production ta
 
 @@ page application-bureau | I | 8 | L'application de bureau | Tauri, le thread Rust de temps d'écran, la zone de notification, le démarrage automatique et l'installeur.
 
-Application Tauri 2 (React + Vite pour l'interface, Rust pour le système), Windows uniquement. Le Rust est réparti en onze modules : `main.rs` (fenêtres, zone de notification, suivi du temps d'écran), puis `apps.rs`, `system.rs`, `spotify.rs`, `protocol.rs`, `speech.rs`, `listen.rs`, `control.rs`, `modes.rs`, `claude.rs` et `levels.rs`.
+Application Tauri 2 (React + Vite pour l'interface, Rust pour le système), Windows uniquement. Le Rust est réparti en dix-huit modules : `main.rs` (fenêtres, zone de notification, suivi du temps d'écran), puis `apps.rs`, `system.rs`, `spotify.rs`, `player.rs`, `protocol.rs`, `speech.rs`, `listen.rs`, `control.rs`, `modes.rs`, `claude.rs`, `levels.rs`, `ambient.rs`, `greeting.rs`, `reminders.rs`, `desk.rs`, `audio.rs` et `pc.rs`.
 
 ## Fenêtre
 
@@ -77,6 +77,14 @@ Masquer la fenêtre dans la zone de notification ne change pas `document.visibil
 
 Le build a d'abord échoué : `cargo add` avait monté la crate `tauri` à 2.12.1 alors que les paquets npm restaient en 2.11 ; les deux ont été alignés (voir [Bugs et causes racines](#bugs), bug 12). Profil `release` : `opt-level = "s"`, LTO, `codegen-units = 1`, `strip`, `panic` laissé en `unwind` pour qu'une panique du thread de suivi n'arrête pas l'app. Résultat mesuré : exécutable de 9,75 à 6,55 Mo (−33 %).
 
+## Réinstallation : ce qui avait été effacé (08/11)
+
+Après la réinstallation du 06/11/2026, la reconnaissance et la synthèse vocales (1,9 Go posés à la main) avaient disparu, ainsi que la liste des applications et les réglages de la musique, des modes, de l'écoute et de la voix. **Cause, déduite des dates** (la désinstallation n'a pas été vue) : la case « supprimer les données de l'application » du désinstalleur de Tauri efface les deux dossiers de l'application, recréés ici dans la même seconde au premier lancement.
+
+- **Parade 1** : les moteurs de voix vivent dans un **dossier voisin** que cette case ne touche pas ; déplacés à la main le 08/11. Cela protège même avec l'ancien désinstalleur.
+- **Parade 2** : un crochet du désinstalleur affiche une confirmation quand la case est cochée (ce qui part est listé, réponse par défaut « non », « non » aussi en mode silencieux). <span class="st st-prop">Non vérifié</span> Compilation du script vérifiée sur une copie ; **aucune vraie désinstallation essayée et l'installeur n'est pas reconstruit** : le désinstalleur actuellement installé n'a pas ce crochet.
+- **Pertes** : la liste des applications est restaurée (24 chemins relus, ils existent toujours) à partir d'une transcription d'une session précédente ; les identifiants de la musique, l'historique du temps d'écran depuis le 08/10 et d'éventuels réglages de voix sont perdus. Voir le bug [21](#bugs).
+
 ## Barre de commande, voix et protocoles (V2)
 
 Depuis le 13/10/2026, l'application exécute des commandes locales, sans réseau, depuis une barre qui s'ouvre avec `Ctrl+K` (`Échap` la ferme) et flotte en bas au centre, sans toucher à la grille de cartes :
@@ -88,6 +96,8 @@ Depuis le 13/10/2026, l'application exécute des commandes locales, sans réseau
 - **le micro** écoute en continu (thread Rust, reconnaissance locale) et traite une phrase qui commence par « Løra » comme une phrase tapée ; une case du menu de la zone de notification coupe l'écoute ;
 - **une seconde fenêtre**, le widget, apparaît en bas à droite pendant qu'elle écoute ou parle ;
 - **deux fichiers de boîte aux lettres** permettent à Claude Code de lui parler (« Claude Code a terminé ») et de se faire lire sa dernière réponse.
+- **de petites commandes locales** (09/11) : minuteurs et rappels, heure, temps d'écran, sites et dossiers, fenêtres, volume par application, sortie audio, micro, verrouillage / veille / extinction, presse-papiers, dictée, musique (voir [Les commandes de Løra](#commandes-vocales)) ;
+- **la parole spontanée et le bonjour** (08/11) : une phrase fixe pour un rendez-vous, la batterie de la souris, une pause pour le dos, et un bonjour avec le briefing au démarrage (voir [La voix de Løra](#voix)).
 
 Le détail, les limites et ce qui n'est pas vérifié sont dans [Avancement de la V2](#avancement-v2).
 
@@ -204,7 +214,7 @@ Le ruban réagit à l'état de la voix depuis le 05/11/2026, et à la voix elle-
 
 @@ page tests-qualite | I | 11 | Tests et qualité | Quatre familles de tests plus du Rust, ce qu'ils garantissent et ce qu'ils ne couvrent pas.
 
-529 tests, ajoutés surtout le 08/10/2026 en fin de V1, puis à chaque étape de la V2 (411 rapides, 95 en Rust et 23 scénarios navigateur, rejoués le 06/11/2026 d'après l'état du projet). Vitest 5, configuration à quatre projets dans `vitest.config.ts`.
+644 tests, ajoutés surtout le 08/10/2026 en fin de V1, puis à chaque étape de la V2 (472 rapides et 149 en Rust rejoués le 09/11/2026, 23 scénarios navigateur rejoués le 08/11/2026, d'après l'état du projet). Vitest 5, configuration à quatre projets dans `vitest.config.ts`.
 
 | Famille | Ce qu'elle couvre | Rapidité |
 | --- | --- | --- |
@@ -212,7 +222,7 @@ Le ruban réagit à l'état de la voix depuis le 05/11/2026, et à la voix elle-
 | **Intégration** | webhook Telegram (secret, `chat_id`, publication dans la file), worker (signature, réponse), crons du matin et du soir, `/api/dashboard` : le vrai code tourne de bout en bout, seuls Notion, Redis, Telegram, Groq et le réseau sont simulés | instantané |
 | **Régression** | un fichier par **famille de bugs déjà corrigés** : paramètres `null` de Groq, fuseau horaire, bilan périmé et rappels d'agenda, URL de livraison QStash, garde-fous fermés par défaut, requêtes Notion, champs retirés du payload, plafonds de requêtes des crons | instantané |
 | **Acceptation** | 23 scénarios (4 fichiers) dans un vrai navigateur (Playwright) sur l'app réelle avec un faux backend : dashboard complet, briefings, détail Écran, bascule Écran ↔ Jalons, liens, calendrier, backend en panne ou clé refusée, intro, pause du rendu, retour visuel de la voix et widget (noyau Tauri simulé) | environ 4 min |
-| **Rust** | 95 tests (13 essais réels ignorés par défaut) : reconnaissance des commandes, liste blanche des applications, volume, musique, protocole, voix, découpage de l'écoute et mot d'activation, analyse du son, commandes de contrôle, modes, Claude Code ; certains lancent ou ferment de vrais processus | instantané |
+| **Rust** | 149 tests (13 essais réels ignorés par défaut) : reconnaissance des commandes, liste blanche des applications, volume, musique, protocole, voix, découpage de l'écoute et mot d'activation, analyse du son, commandes de contrôle, modes, Claude Code, minuteurs, bureau, audio, PC, lecteur, parole spontanée ; certains lancent ou ferment de vrais processus ou appellent un faux serveur HTTP local | instantané |
 
 ## Principes à retenir
 
@@ -221,16 +231,17 @@ Le ruban réagit à l'état de la voix depuis le 05/11/2026, et à la voix elle-
 - **Les bugs sont rangés par famille**, pas par date : chaque bug du chapitre [Bugs et causes racines](#bugs) a son garde-fou.
 - La vérification de types stricte (`tsc --noEmit`) accompagne chaque étape.
 
-## État au 06/11/2026
+## État au 09/11/2026
 
-- <span class="st st-ok">Fait</span> **411 tests rapides passent** (32 fichiers, environ 1 s) ; `tsc --noEmit` sans erreur (rejoués le 06/11/2026 d'après l'état du projet, pas pour cette mise à jour du wiki).
-- <span class="st st-ok">Fait</span> **Les deux tests de cadence sont corrigés (étape 0, 12/10/2026).** Ils figeaient l'ancienne cadence de 30 images/s alors que `REST_FPS` est passé à 60. Ils lisent maintenant `REST_FPS` ; le test de l'intro n'échouait pas, il dépassait son délai de 60 s (rendu logiciel simulé), porté à 180 s. **Limite** : à 60 images/s le plafond ne se distingue plus de l'absence de plafond sur l'horloge simulée, ces tests ne gardent que le plafond haut. Le parcours d'acceptation compte maintenant 23 scénarios en 4 fichiers, tous passés le 06/11/2026 sur la fusion avec `main` (environ 4 min, retour visuel de la voix et widget compris).
-- <span class="st st-ok">Fait</span> **Tests Rust : 95 passent, 13 sont ignorés** (les essais réels qui touchent la machine ou le réseau : musique, recherche d'un morceau, identifiants refusés, voix, micro, Whisper, frappe dans l'éditeur, phrases des modes), rejoués le 06/11/2026 d'après l'état du projet.
-- Deux **batteries contre le vrai modèle** existent (`test:search` : 28 cas de recherche ; `test:projects` : briefings et bilan avec plusieurs projets). Ce ne sont pas des tests de non-régression : elles coûtent 160 000 à 220 000 jetons, sur un quota quotidien de 200 000 partagé avec les briefings, et ne se relancent pas plusieurs fois par jour.
+- <span class="st st-ok">Fait</span> **472 tests rapides passent** (35 fichiers) ; `tsc --noEmit` sans erreur ; **149 tests Rust passent, 13 sont ignorés** (les essais réels qui touchent la machine ou le réseau). Rejoués le 09/11/2026 d'après l'état du projet, pas pour cette mise à jour du wiki.
+- <span class="st st-ok">Fait</span> **23 scénarios navigateur** (4 fichiers, environ 4 min 20 s) rejoués en entier le 08/11/2026 ; les lots du 09/11 touchent le Rust et le backend, pas l'interface.
+- Les tests des lots du 09/11 n'utilisent **ni réseau ni modèle** : chaque service est simulé, et un « jamais appelé » fait échouer le test si une demande part au mauvais endroit. Pour la musique et l'envoi vers Telegram, de vraies requêtes partent vers de **faux serveurs locaux**. Deux défauts de tests ont été trouvés et corrigés (un fichier de jeton partagé, un corps JSON comparé tel quel).
+- <span class="st st-ok">Fait</span> **Les deux tests de cadence sont corrigés (étape 0, 12/10/2026)** : ils lisent `REST_FPS` ; à 60 images/s le plafond ne se distingue plus de l'absence de plafond sur l'horloge simulée, ces tests ne gardent que le plafond haut.
+- Deux **batteries contre le vrai modèle** existent (`test:search` : 28 cas de recherche ; `test:projects` : briefings et bilan avec plusieurs projets). Ce ne sont pas des tests de non-régression : elles coûtent 160 000 à 220 000 jetons, sur un quota quotidien de 200 000 partagé avec les briefings, et ne se relancent pas plusieurs fois par jour. Les essais contre le vrai modèle ont été évités depuis le 05/11 (le quota avait été presque épuisé par des essais).
 
 ## Ce que les tests ne couvrent pas
 
-Le suivi réel de la fenêtre active (il dépend du système d'exploitation), le rendu visuel du verre et des particules (WebGL logiciel), le menu de la zone de notification et le démarrage automatique (visibles seulement dans l'application installée), et **le texte produit par le modèle** : seul le contexte qui lui est envoyé est testé. S'y ajoutent, pour la voix : le micro, les haut-parleurs et l'oreille (qualité du son, synchronisation du ruban, précision du mot d'activation), la frappe dans l'éditeur de code, la fenêtre transparente du widget et son comportement avec un jeu en plein écran : essais réels à faire par l'utilisateur.
+Le suivi réel de la fenêtre active (il dépend du système d'exploitation), le rendu visuel du verre et des particules (WebGL logiciel), le menu de la zone de notification et le démarrage automatique (visibles seulement dans l'application installée), et **le texte produit par le modèle** : seul le contexte qui lui est envoyé est testé. S'y ajoutent, pour la voix : le micro, les haut-parleurs et l'oreille (qualité du son, synchronisation du ruban, précision du mot d'activation), la frappe dans l'éditeur de code, la fenêtre transparente du widget et son comportement avec un jeu en plein écran : essais réels à faire par l'utilisateur. Les lots du 09/11 ont été écrits contre des simulations (faux Spotify, faux Notion, faux serveurs HTTP, réponses simulées des APIs de météo et de taux) : leur vérification contre les vrais services est celle de l'utilisateur, à l'usage.
 
 ## Commandes
 
@@ -270,7 +281,24 @@ Protégé par une clé dans l'en-tête `x-dashboard-key`. **Compromis assumé** 
 - **Modes de travail** : un mode n'ouvre que des applications de la liste blanche et des adresses `http` ou `https` sans espace ni caractère de commande, passées en arguments du navigateur (aucun interpréteur) ; `file:`, `javascript:` et les options `--…` sont refusés.
 - **Claude Code** : rien n'est jamais envoyé sans un « oui » à la question « Je l'envoie ? » (une négation l'emporte toujours) ; le focus de la session est repris avant d'appuyer sur Entrée ; la frappe n'a lieu que dans la fenêtre de l'éditeur dont le titre contient le nom du dossier du projet, sans toucher au presse-papiers ; l'identifiant de session n'est utilisé que s'il est fait de lettres, de chiffres et de tirets.
 - **Voix** : la reconnaissance (Whisper) et la synthèse (Piper) tournent en local, l'audio ne quitte pas le PC ; seul le texte reconnu part à `api/ask`, comme une phrase tapée. Les exécutables de la voix ne sont pas signés (un antivirus peut les signaler) et ont été installés à la main avec l'accord de l'utilisateur. `listen.log`, qui garde en clair tout ce qui est entendu, n'existe que si `log` est activé dans `listen.json`. Le jeton de renouvellement du service de musique est en clair sur le disque (droit demandé : lire la bibliothèque, rien d'autre) : le supprimer déconnecte.
+- **Actions qui éteignent ou effacent** : verrouiller, mettre en veille, éteindre et vider la corbeille demandent une confirmation à la voix (« J'éteins le PC ? » puis un « oui » dans les 30 secondes, un « non » l'emporte) ; l'extinction part avec 30 secondes de délai et s'annule (« annule l'extinction ») ; le presse-papiers n'est lu à voix haute qu'en texte, coupé à 300 caractères (attention aux mots de passe et à l'entourage) ; « coupe le micro » coupe aussi l'écoute de Løra : seul « remets le micro », tapé dans la barre, la rétablit.
 - Ce que Løra dit à voix haute (agenda, notes, bilan) peut être entendu par l'entourage.
+
+## L'endpoint send et la présence du PC
+
+`api/send.ts` poste un texte venu du PC (« envoie-moi ça sur Telegram ») dans le seul chat autorisé : le backend revérifie le `chat_id` autorisé et ignore tout `chat_id` de la demande ; il refuse sans clé, avec un texte vide ou trop long, et répond 502 si Telegram tombe. **La présence du PC** : une interrogation de `/api/protocol` sur quatre porte un indicateur et le backend note l'heure dans Redis (environ 720 écritures par jour). **Aucun ordre ne descend vers le PC** en dehors des protocoles : « verrouille le PC » depuis Telegram est volontairement non fait, pour garder la surface d'attaque petite. <span class="st st-prop">Non vérifié</span> Le vrai Redis et le vrai Telegram n'ont été vus que par les tests simulés ; le backend de ces lots devait être redéployé.
+
+## La passe sécurité du 08/11/2026
+
+Faite sur le code réel (lecture, rien d'exécuté contre des cibles tierces) : webhook, worker et crons, `/api/dashboard`, `/api/ask`, `/api/protocol`, politique de contenu et capacités de l'application. **Rien de bloquant.** Vérifié en production : `/api/dashboard` répond 401 sans clé et avec une mauvaise clé. Points à connaître :
+
+1. un réglage de développement de la bibliothèque de file (`QSTASH_DEV`) fait ignorer les clés de signature : il est dans le `.env` local, absent de la production, **à ne jamais y mettre** ;
+2. la clé du dashboard est embarquée dans l'application et CORS est ouvert : quiconque l'extrait de l'installeur peut appeler `/api/ask` (outils Notion, jetons Groq) et `/api/protocol`, sans limite de débit ; accepté en usage à un seul utilisateur, à remplacer par une clé renouvelable si l'application est distribuée ;
+3. la recherche web et les outils d'écriture partagent le même appel : une page web piégée pourrait pousser le modèle à écrire dans Notion depuis Telegram (sans confirmation, contrairement à la voix) ; écritures peu destructrices ;
+4. la comparaison de clé n'est pas en temps constant et un message d'erreur 500 est renvoyé tel quel, derrière la clé : négligeable ;
+5. les commandes de l'application ne sont pas restreintes par fenêtre : la fenêtre du widget pourrait les appeler, ce que bornent la CSP et la liste blanche d'applications.
+
+**Dépendances** : `npm audit` donnait 2 alertes hautes, corrigées (seul `package-lock.json` change, 0 alerte restante, tests verts).
 
 ## L'application de bureau
 
@@ -285,5 +313,5 @@ Le temps d'écran, qui révèle ce qu'on fait sur son ordinateur, reste sur la m
 ## Limites
 
 - **Pas de limitation de débit** au-delà du filtre `chat_id` : risque faible en usage à un utilisateur, à traiter si le bot devient accessible à d'autres.
-- <span class="st st-prop">Non vérifié</span> **Une passe sécurité** n'a toujours pas été faite sur le code réel au 06/11/2026, alors que la surface a grandi (endpoint `api/ask`, frappe dans l'éditeur, micro). La relecture du 06/11 des modules neufs n'en tient pas lieu : elle porte sur le code et les tests, pas sur l'application réelle.
+- <span class="st st-ok">Fait</span> **Passe sécurité faite le 08/11/2026** sur le code réel (voir plus haut) : rien de bloquant ; points acceptés en usage à un seul utilisateur, à reprendre si l'application est distribuée.
 - Une clé de dashboard embarquée dans un binaire est lisible par quiconque obtient le binaire (voir plus haut).
